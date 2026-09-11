@@ -2,8 +2,6 @@ package com.shiver.tinkers_sort.sorting;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
-import net.minecraftforge.fml.common.ModContainer;
-import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.materials.BowMaterialStats;
 import slimeknights.tconstruct.library.materials.ExtraMaterialStats;
 import slimeknights.tconstruct.library.materials.HandleMaterialStats;
@@ -53,9 +51,6 @@ public class MaterialComparator implements Comparator<Material> {
             case NAME:
                 result = compareName(m1, m2);
                 break;
-            case MOD:
-                result = compareMod(m1, m2);
-                break;
             case HARVEST_LEVEL:
                 result = compareHarvestLevel(m1, m2);
                 break;
@@ -99,36 +94,6 @@ public class MaterialComparator implements Comparator<Material> {
     private int compareName(Material m1, Material m2) {
         int cmp = JechHelper.compare(m1.getLocalizedName(), m2.getLocalizedName(), collator);
         return order == SortOrder.DESCENDING ? -cmp : cmp;
-    }
-
-    private int compareMod(Material m1, Material m2) {
-        String mod1 = getModName(m1);
-        String mod2 = getModName(m2);
-        int cmp = JechHelper.compare(mod1, mod2, collator);
-        if (cmp != 0) {
-            return order == SortOrder.DESCENDING ? -cmp : cmp;
-        }
-        return compareName(m1, m2);
-    }
-
-    public static String getModName(Material material) {
-        try {
-            ModContainer mod = TinkerRegistry.getTrace(material);
-            if (mod != null) {
-                return mod.getName();
-            }
-        } catch (Exception ignored) {}
-        return "Minecraft";
-    }
-
-    public static String getModId(Material material) {
-        try {
-            ModContainer mod = TinkerRegistry.getTrace(material);
-            if (mod != null) {
-                return mod.getModId();
-            }
-        } catch (Exception ignored) {}
-        return "minecraft";
     }
 
     private int compareHarvestLevel(Material m1, Material m2) {

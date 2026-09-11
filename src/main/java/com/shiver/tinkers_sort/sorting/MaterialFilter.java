@@ -14,15 +14,6 @@ public class MaterialFilter {
 
         String q = query.trim().toLowerCase();
 
-        // Mod search: @modid or @modname
-        if (q.startsWith("@")) {
-            String modQuery = q.substring(1).trim();
-            if (modQuery.isEmpty()) return true;
-            String modId = MaterialComparator.getModId(material);
-            String modName = MaterialComparator.getModName(material);
-            return JechHelper.contains(modId, modQuery) || JechHelper.contains(modName, modQuery);
-        }
-
         // Trait search: #trait
         if (q.startsWith("#")) {
             String traitQuery = q.substring(1).trim();

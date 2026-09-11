@@ -8,7 +8,6 @@ import java.util.List;
 public enum SortMode {
     DEFAULT("tinkers_sort.sort.default", "tinkers_sort.sort.default.desc", false, false),
     NAME("tinkers_sort.sort.name", "tinkers_sort.sort.name.desc", false, false),
-    MOD("tinkers_sort.sort.mod", "tinkers_sort.sort.mod.desc", false, false),
     HARVEST_LEVEL("tinkers_sort.sort.harvest_level", "tinkers_sort.sort.harvest_level.desc", true, false),
     DURABILITY("tinkers_sort.sort.durability", "tinkers_sort.sort.durability.desc", true, true),
     MINING_SPEED("tinkers_sort.sort.mining_speed", "tinkers_sort.sort.mining_speed.desc", true, false),

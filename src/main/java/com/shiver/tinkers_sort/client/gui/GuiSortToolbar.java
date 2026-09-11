@@ -206,8 +206,7 @@ public class GuiSortToolbar {
                 List<String> tooltip = java.util.Arrays.asList(
                         I18n.format("tinkers_sort.gui.search_tooltip.title"),
                         I18n.format("tinkers_sort.gui.search_tooltip.name"),
-                        I18n.format("tinkers_sort.gui.search_tooltip.trait"),
-                        I18n.format("tinkers_sort.gui.search_tooltip.mod")
+                        I18n.format("tinkers_sort.gui.search_tooltip.trait")
                 );
                 GuiUtils.drawHoveringText(tooltip, mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             }

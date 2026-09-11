@@ -9,14 +9,11 @@ tinkers_sort.gui.reset_tooltip=Reset sort and clear search
 tinkers_sort.gui.search_tooltip.title=§6Search Help§r
 tinkers_sort.gui.search_tooltip.name=§7• Direct input: Search by material name / ID§r
 tinkers_sort.gui.search_tooltip.trait=§b• #trait§r: Search by material trait (e.g. §e#slimy§r, §e#momentum§r)
-tinkers_sort.gui.search_tooltip.mod=§a• @mod§r: Search by mod origin (e.g. §e@tconstruct§r)
 
 tinkers_sort.sort.default=Default
 tinkers_sort.sort.default.desc=Original mod registration order
 tinkers_sort.sort.name=Name
 tinkers_sort.sort.name.desc=Sort alphabetically by localized name
-tinkers_sort.sort.mod=Mod Origin
-tinkers_sort.sort.mod.desc=Group and sort by originating mod
 tinkers_sort.sort.harvest_level=Harvest Level
 tinkers_sort.sort.harvest_level.desc=Sort by head harvest level
 tinkers_sort.sort.durability=Durability
