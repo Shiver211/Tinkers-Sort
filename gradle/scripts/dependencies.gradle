@@ -44,6 +44,7 @@ dependencies {
     // 'group:name:version:classifier' where classifier is optional
     implementation rfg.deobf("curse.maven:mantle-74924:2713386")
     implementation rfg.deobf("curse.maven:tinkers-antique-1242239:8666425")
+    implementation rfg.deobf("curse.maven:just-enough-characters-250702:7424367")
     // Example - Deobfuscating dependencies:
     // rfg.deobf('curse.maven:had-enough-items-557549:4543375')
     // By wrapping a dependency descriptor in rfg.deobf() method call, the dependency is queued for deobfuscation

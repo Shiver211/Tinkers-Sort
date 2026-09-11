@@ -193,6 +193,7 @@ public class GuiSortToolbar {
         // 7. Render Tooltips
         if (!isDropdownOpen) {
             boolean hoverClear = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + clearX, y + clearY, clearW, clearH);
+            boolean hoverSearch = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + searchX, y + searchY, searchW, searchH);
             if (hoverMode) {
                 GuiUtils.drawHoveringText(Collections.singletonList(currentMode.getDescription()), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverOrder) {
@@ -201,6 +202,14 @@ public class GuiSortToolbar {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.reset_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverClear && searchField != null && !searchField.getText().isEmpty()) {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.clear_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
+            } else if (hoverSearch) {
+                List<String> tooltip = java.util.Arrays.asList(
+                        I18n.format("tinkers_sort.gui.search_tooltip.title"),
+                        I18n.format("tinkers_sort.gui.search_tooltip.name"),
+                        I18n.format("tinkers_sort.gui.search_tooltip.trait"),
+                        I18n.format("tinkers_sort.gui.search_tooltip.mod")
+                );
+                GuiUtils.drawHoveringText(tooltip, mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             }
         } else {
             // Check tooltip for dropdown hovered item

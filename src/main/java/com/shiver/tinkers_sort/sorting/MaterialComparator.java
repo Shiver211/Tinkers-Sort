@@ -97,14 +97,14 @@ public class MaterialComparator implements Comparator<Material> {
     }
 
     private int compareName(Material m1, Material m2) {
-        int cmp = collator.compare(m1.getLocalizedName(), m2.getLocalizedName());
+        int cmp = JechHelper.compare(m1.getLocalizedName(), m2.getLocalizedName(), collator);
         return order == SortOrder.DESCENDING ? -cmp : cmp;
     }
 
     private int compareMod(Material m1, Material m2) {
         String mod1 = getModName(m1);
         String mod2 = getModName(m2);
-        int cmp = collator.compare(mod1, mod2);
+        int cmp = JechHelper.compare(mod1, mod2, collator);
         if (cmp != 0) {
             return order == SortOrder.DESCENDING ? -cmp : cmp;
         }

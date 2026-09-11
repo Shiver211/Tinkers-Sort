@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
         modid = Tags.MOD_ID,
         name = Tags.MOD_NAME,
         version = Tags.VERSION,
-        dependencies = "required-after:tconstruct;required-after:mantle",
+        dependencies = "required-after:tconstruct;required-after:mantle;after:jecharacters",
         clientSideOnly = true
 )
 public class TinkersSort {

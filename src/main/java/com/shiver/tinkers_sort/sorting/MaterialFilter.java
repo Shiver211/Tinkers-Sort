@@ -18,9 +18,9 @@ public class MaterialFilter {
         if (q.startsWith("@")) {
             String modQuery = q.substring(1).trim();
             if (modQuery.isEmpty()) return true;
-            String modId = MaterialComparator.getModId(material).toLowerCase();
-            String modName = MaterialComparator.getModName(material).toLowerCase();
-            return modId.contains(modQuery) || modName.contains(modQuery);
+            String modId = MaterialComparator.getModId(material);
+            String modName = MaterialComparator.getModName(material);
+            return JechHelper.contains(modId, modQuery) || JechHelper.contains(modName, modQuery);
         }
 
         // Trait search: #trait
@@ -29,7 +29,7 @@ public class MaterialFilter {
             if (traitQuery.isEmpty()) return true;
             Collection<ITrait> traits = material.getAllTraits();
             for (ITrait trait : traits) {
-                if (trait.getLocalizedName().toLowerCase().contains(traitQuery)
+                if (JechHelper.contains(trait.getLocalizedName(), traitQuery)
                         || trait.getIdentifier().toLowerCase().contains(traitQuery)) {
                     return true;
                 }
@@ -38,28 +38,12 @@ public class MaterialFilter {
         }
 
         // Standard search: localized name or identifier
-        String localizedName = material.getLocalizedName().toLowerCase();
-        if (localizedName.contains(q)) {
+        if (JechHelper.contains(material.getLocalizedName(), q)) {
             return true;
         }
 
-        String identifier = material.getIdentifier().toLowerCase();
-        if (identifier.contains(q)) {
+        if (JechHelper.contains(material.getIdentifier(), q)) {
             return true;
-        }
-
-        // Check mod name as well
-        String modName = MaterialComparator.getModName(material).toLowerCase();
-        if (modName.contains(q)) {
-            return true;
-        }
-
-        // Check traits
-        Collection<ITrait> traits = material.getAllTraits();
-        for (ITrait trait : traits) {
-            if (trait.getLocalizedName().toLowerCase().contains(q)) {
-                return true;
-            }
         }
 
         return false;
