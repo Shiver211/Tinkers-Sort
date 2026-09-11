@@ -1,0 +1,30 @@
+# 匠魂宝典实时排序 - 中文本地化
+tinkers_sort.order.ascending=升序
+tinkers_sort.order.descending=降序
+
+tinkers_sort.gui.search=搜索材料...
+tinkers_sort.gui.clear_tooltip=清空搜索内容
+tinkers_sort.gui.order_tooltip=点击切换 升序 / 降序
+tinkers_sort.gui.reset_tooltip=重置为默认排序并清空搜索
+
+tinkers_sort.sort.default=默认顺序
+tinkers_sort.sort.default.desc=模组原始注册顺序
+tinkers_sort.sort.name=材料名称
+tinkers_sort.sort.name.desc=按材料本地化名称拼音与字母排序
+tinkers_sort.sort.mod=来源模组
+tinkers_sort.sort.mod.desc=按材料所属模组归类聚集排序
+tinkers_sort.sort.harvest_level=采掘等级
+tinkers_sort.sort.harvest_level.desc=按头部采掘等级排序 (木/石/铁/钻石/钴...)
+tinkers_sort.sort.durability=基础耐久
+tinkers_sort.sort.durability.desc=按头部基础耐久度排序
+tinkers_sort.sort.mining_speed=挖掘速度
+tinkers_sort.sort.mining_speed.desc=按头部基础挖掘速度排序
+tinkers_sort.sort.attack_damage=攻击伤害
+tinkers_sort.sort.attack_damage.desc=按头部基础攻击伤害排序
+tinkers_sort.sort.draw_speed=拉弓速度
+tinkers_sort.sort.draw_speed.desc=按弓臂拉弓速度排序
+tinkers_sort.sort.range=射程倍率
+tinkers_sort.sort.range.desc=按弓臂有效射程倍率排序
+tinkers_sort.sort.bonus_damage=额外伤害
+tinkers_sort.sort.bonus_damage.desc=按箭矢额外伤害加成排序
+

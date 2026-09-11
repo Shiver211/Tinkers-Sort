@@ -1,0 +1,30 @@
+# Tinkers' Sort - English Localization
+tinkers_sort.order.ascending=Ascending
+tinkers_sort.order.descending=Descending
+
+tinkers_sort.gui.search=Search...
+tinkers_sort.gui.clear_tooltip=Clear search query
+tinkers_sort.gui.order_tooltip=Click to toggle Ascending / Descending
+tinkers_sort.gui.reset_tooltip=Reset sort and clear search
+
+tinkers_sort.sort.default=Default
+tinkers_sort.sort.default.desc=Original mod registration order
+tinkers_sort.sort.name=Name
+tinkers_sort.sort.name.desc=Sort alphabetically by localized name
+tinkers_sort.sort.mod=Mod Origin
+tinkers_sort.sort.mod.desc=Group and sort by originating mod
+tinkers_sort.sort.harvest_level=Harvest Level
+tinkers_sort.sort.harvest_level.desc=Sort by head harvest level
+tinkers_sort.sort.durability=Durability
+tinkers_sort.sort.durability.desc=Sort by head / base durability
+tinkers_sort.sort.mining_speed=Mining Speed
+tinkers_sort.sort.mining_speed.desc=Sort by head mining speed
+tinkers_sort.sort.attack_damage=Attack Damage
+tinkers_sort.sort.attack_damage.desc=Sort by head attack damage
+tinkers_sort.sort.draw_speed=Draw Speed
+tinkers_sort.sort.draw_speed.desc=Sort by bow draw speed
+tinkers_sort.sort.range=Range
+tinkers_sort.sort.range.desc=Sort by bow range multiplier
+tinkers_sort.sort.bonus_damage=Arrow Damage
+tinkers_sort.sort.bonus_damage.desc=Sort by arrow bonus damage
+
