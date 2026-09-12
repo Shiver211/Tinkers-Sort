@@ -76,6 +76,9 @@ public class MaterialComparator implements Comparator<Material> {
             case ATTACK_DAMAGE:
                 result = compareAttackDamage(m1, m2);
                 break;
+            case HANDLE_MODIFIER:
+                result = compareHandleModifier(m1, m2);
+                break;
             case DRAW_SPEED:
                 result = compareDrawSpeed(m1, m2);
                 break;
@@ -191,6 +194,21 @@ public class MaterialComparator implements Comparator<Material> {
             return 0;
         }
         int cmp = Float.compare(h1.attack, h2.attack);
+        return order == SortOrder.DESCENDING ? -cmp : cmp;
+    }
+
+    private int compareHandleModifier(Material m1, Material m2) {
+        HandleMaterialStats h1 = m1.getStats(MaterialTypes.HANDLE);
+        HandleMaterialStats h2 = m2.getStats(MaterialTypes.HANDLE);
+        boolean has1 = h1 != null;
+        boolean has2 = h2 != null;
+        if (has1 != has2) {
+            return has1 ? -1 : 1;
+        }
+        if (!has1) {
+            return 0;
+        }
+        int cmp = Float.compare(h1.modifier, h2.modifier);
         return order == SortOrder.DESCENDING ? -cmp : cmp;
     }
 

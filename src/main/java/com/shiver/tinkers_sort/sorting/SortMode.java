@@ -12,6 +12,7 @@ public enum SortMode {
     DURABILITY("tinkers_sort.sort.durability", "tinkers_sort.sort.durability.desc", true, true, TargetCategory.TOOL_AND_BOW),
     MINING_SPEED("tinkers_sort.sort.mining_speed", "tinkers_sort.sort.mining_speed.desc", true, false, TargetCategory.TOOL),
     ATTACK_DAMAGE("tinkers_sort.sort.attack_damage", "tinkers_sort.sort.attack_damage.desc", true, false, TargetCategory.TOOL),
+    HANDLE_MODIFIER("tinkers_sort.sort.handle_modifier", "tinkers_sort.sort.handle_modifier.desc", true, false, TargetCategory.TOOL),
     DRAW_SPEED("tinkers_sort.sort.draw_speed", "tinkers_sort.sort.draw_speed.desc", false, true, TargetCategory.BOW),
     RANGE("tinkers_sort.sort.range", "tinkers_sort.sort.range.desc", false, true, TargetCategory.BOW),
     BONUS_DAMAGE("tinkers_sort.sort.bonus_damage", "tinkers_sort.sort.bonus_damage.desc", false, true, TargetCategory.BOW),

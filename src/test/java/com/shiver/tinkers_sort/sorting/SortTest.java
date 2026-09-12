@@ -22,6 +22,7 @@ public class SortTest {
         assertTrue(toolModes.contains(SortMode.NAME));
         assertTrue(toolModes.contains(SortMode.HARVEST_LEVEL));
         assertTrue(toolModes.contains(SortMode.DURABILITY));
+        assertTrue(toolModes.contains(SortMode.HANDLE_MODIFIER));
         assertFalse(toolModes.contains(SortMode.DRAW_SPEED));
 
         List<SortMode> bowModes = SortMode.getApplicableModes("bowmaterials");
@@ -30,6 +31,7 @@ public class SortTest {
         assertTrue(bowModes.contains(SortMode.DRAW_SPEED));
         assertTrue(bowModes.contains(SortMode.RANGE));
         assertFalse(bowModes.contains(SortMode.HARVEST_LEVEL));
+        assertFalse(bowModes.contains(SortMode.HANDLE_MODIFIER));
     }
 
     @Test

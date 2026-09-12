@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 @Config(modid = Tags.MOD_ID, name = Tags.MOD_ID)
 public class ModConfig {
 
-    @Config.Comment("Default sorting mode for tool materials (DEFAULT, NAME, HARVEST_LEVEL, DURABILITY, MINING_SPEED, ATTACK_DAMAGE)")
+    @Config.Comment("Default sorting mode for tool materials (DEFAULT, NAME, HARVEST_LEVEL, DURABILITY, MINING_SPEED, ATTACK_DAMAGE, HANDLE_MODIFIER)")
     @Config.Name("DefaultSortMode")
     public static String defaultSortMode = "DEFAULT";
 
