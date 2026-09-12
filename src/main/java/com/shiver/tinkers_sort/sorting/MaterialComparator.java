@@ -1,5 +1,6 @@
 package com.shiver.tinkers_sort.sorting;
 
+import com.shiver.tinkers_sort.integration.JechHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.Language;
 import slimeknights.tconstruct.library.materials.ArrowShaftMaterialStats;
@@ -39,7 +40,7 @@ public class MaterialComparator implements Comparator<Material> {
             if (currentLang != null) {
                 currentLocale = currentLang.getJavaLocale();
             }
-        } catch (Exception ignored) {}
+        } catch (Throwable ignored) {}
         this.collator = Collator.getInstance(currentLocale);
         this.collator.setStrength(Collator.SECONDARY);
     }
@@ -96,6 +97,24 @@ public class MaterialComparator implements Comparator<Material> {
                 break;
             case FLETCHING_MODIFIER:
                 result = compareFletchingModifier(m1, m2);
+                break;
+            case ARMOR_DEFENSE:
+                result = ConArmComparatorHelper.compareDefense(m1, m2, order);
+                break;
+            case ARMOR_TOUGHNESS:
+                result = ConArmComparatorHelper.compareToughness(m1, m2, order);
+                break;
+            case ARMOR_DURABILITY:
+                result = ConArmComparatorHelper.compareArmorDurability(m1, m2, order);
+                break;
+            case PLATES_DURABILITY:
+                result = ConArmComparatorHelper.comparePlatesDurability(m1, m2, order);
+                break;
+            case PLATES_MODIFIER:
+                result = ConArmComparatorHelper.comparePlatesModifier(m1, m2, order);
+                break;
+            case TRIM_EXTRA_DURABILITY:
+                result = ConArmComparatorHelper.compareTrimExtraDurability(m1, m2, order);
                 break;
         }
 
@@ -324,5 +343,84 @@ public class MaterialComparator implements Comparator<Material> {
         }
         int cmp = Float.compare(f1.modifier, f2.modifier);
         return order == SortOrder.DESCENDING ? -cmp : cmp;
+    }
+
+    private static class ConArmComparatorHelper {
+
+        static int compareDefense(Material m1, Material m2, SortOrder order) {
+            c4.conarm.lib.materials.CoreMaterialStats c1 = m1.getStats(c4.conarm.lib.materials.ArmorMaterialType.CORE);
+            c4.conarm.lib.materials.CoreMaterialStats c2 = m2.getStats(c4.conarm.lib.materials.ArmorMaterialType.CORE);
+            boolean has1 = c1 != null;
+            boolean has2 = c2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(c1.defense, c2.defense);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
+
+        static int compareToughness(Material m1, Material m2, SortOrder order) {
+            c4.conarm.lib.materials.PlatesMaterialStats p1 = m1.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            c4.conarm.lib.materials.PlatesMaterialStats p2 = m2.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            boolean has1 = p1 != null;
+            boolean has2 = p2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(p1.toughness, p2.toughness);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
+
+        static int compareArmorDurability(Material m1, Material m2, SortOrder order) {
+            Float d1 = getArmorDurability(m1);
+            Float d2 = getArmorDurability(m2);
+            boolean has1 = d1 != null;
+            boolean has2 = d2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(d1, d2);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
+
+        static Float getArmorDurability(Material m) {
+            c4.conarm.lib.materials.CoreMaterialStats core = m.getStats(c4.conarm.lib.materials.ArmorMaterialType.CORE);
+            if (core != null) return core.durability;
+            c4.conarm.lib.materials.PlatesMaterialStats plates = m.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            if (plates != null) return plates.durability;
+            c4.conarm.lib.materials.TrimMaterialStats trim = m.getStats(c4.conarm.lib.materials.ArmorMaterialType.TRIM);
+            if (trim != null) return trim.extraDurability;
+            return null;
+        }
+
+        static int comparePlatesDurability(Material m1, Material m2, SortOrder order) {
+            c4.conarm.lib.materials.PlatesMaterialStats p1 = m1.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            c4.conarm.lib.materials.PlatesMaterialStats p2 = m2.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            boolean has1 = p1 != null;
+            boolean has2 = p2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(p1.durability, p2.durability);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
+
+        static int comparePlatesModifier(Material m1, Material m2, SortOrder order) {
+            c4.conarm.lib.materials.PlatesMaterialStats p1 = m1.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            c4.conarm.lib.materials.PlatesMaterialStats p2 = m2.getStats(c4.conarm.lib.materials.ArmorMaterialType.PLATES);
+            boolean has1 = p1 != null;
+            boolean has2 = p2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(p1.modifier, p2.modifier);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
+
+        static int compareTrimExtraDurability(Material m1, Material m2, SortOrder order) {
+            c4.conarm.lib.materials.TrimMaterialStats t1 = m1.getStats(c4.conarm.lib.materials.ArmorMaterialType.TRIM);
+            c4.conarm.lib.materials.TrimMaterialStats t2 = m2.getStats(c4.conarm.lib.materials.ArmorMaterialType.TRIM);
+            boolean has1 = t1 != null;
+            boolean has2 = t2 != null;
+            if (has1 != has2) return has1 ? -1 : 1;
+            if (!has1) return 0;
+            int cmp = Float.compare(t1.extraDurability, t2.extraDurability);
+            return order == SortOrder.DESCENDING ? -cmp : cmp;
+        }
     }
 }

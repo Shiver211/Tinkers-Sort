@@ -49,3 +49,17 @@ tinkers_sort.category.shaft.desc=箭杆材料 (附加弹药/箭杆耐久系数)
 tinkers_sort.category.fletching=箭羽
 tinkers_sort.category.fletching.desc=箭羽材料 (准确度/箭羽耐久系数)
 
+# 盔甲怀古排序模式
+tinkers_sort.sort.armor_defense=护甲防御
+tinkers_sort.sort.armor_defense.desc=按基底护甲防御值排序
+tinkers_sort.sort.armor_toughness=护甲韧性
+tinkers_sort.sort.armor_toughness.desc=按护甲板护甲韧性排序
+tinkers_sort.sort.armor_durability=基底耐久
+tinkers_sort.sort.armor_durability.desc=按基底部件耐久度排序
+tinkers_sort.sort.plates_durability=护甲板耐久
+tinkers_sort.sort.plates_durability.desc=按护甲板额外耐久度排序
+tinkers_sort.sort.plates_modifier=护甲板系数
+tinkers_sort.sort.plates_modifier.desc=按护甲板耐久倍率系数排序
+tinkers_sort.sort.trim_extra_durability=夹板耐久
+tinkers_sort.sort.trim_extra_durability.desc=按夹板额外耐久度排序
+

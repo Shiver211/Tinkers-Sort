@@ -19,6 +19,7 @@ public class ClientProxy extends CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
         TinkerBook.INSTANCE.addTransformer(TinkerBookTransformer.INSTANCE);
+        com.shiver.tinkers_sort.integration.ArmoryIntegration.init();
     }
 }
 

@@ -50,6 +50,14 @@ public class ModConfig {
     @Config.Name("DefaultFletchingAscending")
     public static boolean defaultFletchingAscending = true;
 
+    @Config.Comment("Default sorting mode for armor materials (DEFAULT, NAME, ARMOR_DEFENSE, ARMOR_TOUGHNESS, ARMOR_DURABILITY, PLATES_DURABILITY, PLATES_MODIFIER, TRIM_EXTRA_DURABILITY)")
+    @Config.Name("DefaultArmorSortMode")
+    public static String defaultArmorSortMode = "DEFAULT";
+
+    @Config.Comment("Default sort order for armor materials: true for ascending, false for descending")
+    @Config.Name("DefaultArmorAscending")
+    public static boolean defaultArmorAscending = true;
+
     @Config.Comment("Whether to remember the last used sort mode and order across sessions")
     @Config.Name("RememberLastSort")
     public static boolean rememberLastSort = true;

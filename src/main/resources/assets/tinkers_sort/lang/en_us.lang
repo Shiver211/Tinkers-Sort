@@ -49,3 +49,17 @@ tinkers_sort.category.shaft.desc=Arrow shaft materials (Bonus Ammo, Shaft Modifi
 tinkers_sort.category.fletching=Fletching
 tinkers_sort.category.fletching.desc=Fletching materials (Accuracy, Fletching Modifier)
 
+# Construct's Armory Sort Modes
+tinkers_sort.sort.armor_defense=Defense
+tinkers_sort.sort.armor_defense.desc=Sort by core armor defense
+tinkers_sort.sort.armor_toughness=Toughness
+tinkers_sort.sort.armor_toughness.desc=Sort by plates armor toughness
+tinkers_sort.sort.armor_durability=Core Durability
+tinkers_sort.sort.armor_durability.desc=Sort by core armor durability
+tinkers_sort.sort.plates_durability=Plates Durability
+tinkers_sort.sort.plates_durability.desc=Sort by plates extra durability
+tinkers_sort.sort.plates_modifier=Plates Modifier
+tinkers_sort.sort.plates_modifier.desc=Sort by plates durability modifier
+tinkers_sort.sort.trim_extra_durability=Trim Durability
+tinkers_sort.sort.trim_extra_durability.desc=Sort by trim extra durability
+

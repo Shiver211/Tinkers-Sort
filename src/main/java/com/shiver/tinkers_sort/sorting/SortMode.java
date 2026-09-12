@@ -20,7 +20,13 @@ public enum SortMode {
     BONUS_AMMO("tinkers_sort.sort.bonus_ammo", "tinkers_sort.sort.bonus_ammo.desc", TargetCategory.SHAFT),
     SHAFT_MODIFIER("tinkers_sort.sort.shaft_modifier", "tinkers_sort.sort.shaft_modifier.desc", TargetCategory.SHAFT),
     ACCURACY("tinkers_sort.sort.accuracy", "tinkers_sort.sort.accuracy.desc", TargetCategory.FLETCHING),
-    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", TargetCategory.FLETCHING);
+    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", TargetCategory.FLETCHING),
+    ARMOR_DEFENSE("tinkers_sort.sort.armor_defense", "tinkers_sort.sort.armor_defense.desc", TargetCategory.ARMOR),
+    ARMOR_TOUGHNESS("tinkers_sort.sort.armor_toughness", "tinkers_sort.sort.armor_toughness.desc", TargetCategory.ARMOR),
+    ARMOR_DURABILITY("tinkers_sort.sort.armor_durability", "tinkers_sort.sort.armor_durability.desc", TargetCategory.ARMOR),
+    PLATES_DURABILITY("tinkers_sort.sort.plates_durability", "tinkers_sort.sort.plates_durability.desc", TargetCategory.ARMOR),
+    PLATES_MODIFIER("tinkers_sort.sort.plates_modifier", "tinkers_sort.sort.plates_modifier.desc", TargetCategory.ARMOR),
+    TRIM_EXTRA_DURABILITY("tinkers_sort.sort.trim_extra_durability", "tinkers_sort.sort.trim_extra_durability.desc", TargetCategory.ARMOR);
 
     public enum TargetCategory {
         ALL,
@@ -29,7 +35,8 @@ public enum SortMode {
         BOW,
         BOWSTRING,
         SHAFT,
-        FLETCHING
+        FLETCHING,
+        ARMOR
     }
 
     private final String unlocalizedName;
@@ -61,7 +68,9 @@ public enum SortMode {
             s = s.substring("bowmaterials:".length());
         }
 
-        if ("materials".equals(s)) {
+        if ("armormaterials".equals(s) || "armor".equals(s)) {
+            return category == TargetCategory.ALL || category == TargetCategory.ARMOR;
+        } else if ("materials".equals(s)) {
             return category == TargetCategory.ALL || category == TargetCategory.TOOL || category == TargetCategory.TOOL_AND_BOW;
         } else if ("bow".equals(s)) {
             return category == TargetCategory.ALL || category == TargetCategory.BOW || category == TargetCategory.TOOL_AND_BOW;
@@ -71,8 +80,8 @@ public enum SortMode {
             return category == TargetCategory.ALL || category == TargetCategory.SHAFT;
         } else if ("fletching".equals(s)) {
             return category == TargetCategory.ALL || category == TargetCategory.FLETCHING;
-        } else if ("bowmaterials".equals(s)) {
-            return category != TargetCategory.TOOL;
+        } else if ("bowmaterials".equals(s) || "all".equals(s)) {
+            return category != TargetCategory.TOOL && category != TargetCategory.ARMOR;
         }
         return true;
     }

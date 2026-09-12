@@ -1,6 +1,8 @@
 package com.shiver.tinkers_sort.sorting;
 
 import com.shiver.tinkers_sort.book.MaterialSectionManager;
+import com.shiver.tinkers_sort.integration.JechHelper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -8,6 +10,45 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SortTest {
+
+    @BeforeAll
+    public static void setUpForgeMock() {
+        try {
+            net.minecraftforge.fml.common.IFMLSidedHandler handler = (net.minecraftforge.fml.common.IFMLSidedHandler) java.lang.reflect.Proxy.newProxyInstance(
+                    SortTest.class.getClassLoader(),
+                    new Class<?>[]{net.minecraftforge.fml.common.IFMLSidedHandler.class},
+                    (proxy, method, args) -> {
+                        if ("getSide".equals(method.getName())) {
+                            return net.minecraftforge.fml.relauncher.Side.CLIENT;
+                        }
+                        return null;
+                    }
+            );
+            java.lang.reflect.Field f = net.minecraftforge.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+            f.setAccessible(true);
+            f.set(net.minecraftforge.fml.common.FMLCommonHandler.instance(), handler);
+
+            net.minecraftforge.fml.common.Loader loader = net.minecraftforge.fml.common.Loader.instance();
+            java.lang.reflect.Field lf = net.minecraftforge.fml.common.Loader.class.getDeclaredField("modController");
+            lf.setAccessible(true);
+            net.minecraftforge.fml.common.LoadController lc = (net.minecraftforge.fml.common.LoadController) lf.get(loader);
+            if (lc == null) {
+                lc = new net.minecraftforge.fml.common.LoadController(loader);
+                lf.set(loader, lc);
+            }
+            net.minecraftforge.fml.common.ModContainer container = (net.minecraftforge.fml.common.ModContainer) java.lang.reflect.Proxy.newProxyInstance(
+                    SortTest.class.getClassLoader(),
+                    new Class<?>[]{net.minecraftforge.fml.common.ModContainer.class},
+                    (proxy, method, args) -> {
+                        if ("getModId".equals(method.getName())) {
+                            return "conarm";
+                        }
+                        return null;
+                    }
+            );
+            loader.setActiveModContainer(container);
+        } catch (Throwable ignored) {}
+    }
 
     @Test
     public void testSortOrderToggle() {
@@ -309,6 +350,132 @@ public class SortTest {
         tocPage.content = new slimeknights.tconstruct.library.book.content.ContentListing();
         assertEquals("bow", MaterialSectionManager.arbitrateBowCategory(tocPage, null, null));
         assertEquals("shaft", MaterialSectionManager.arbitrateBowCategory(tocPage, null, "shaft"));
+    }
+
+    @Test
+    public void testArmorSortModesApplicable() {
+        List<SortMode> allArmorModes = SortMode.getApplicableModes("armormaterials");
+        assertTrue(allArmorModes.contains(SortMode.DEFAULT));
+        assertTrue(allArmorModes.contains(SortMode.NAME));
+        assertTrue(allArmorModes.contains(SortMode.ARMOR_DEFENSE));
+        assertTrue(allArmorModes.contains(SortMode.ARMOR_TOUGHNESS));
+        assertTrue(allArmorModes.contains(SortMode.ARMOR_DURABILITY));
+        assertTrue(allArmorModes.contains(SortMode.PLATES_DURABILITY));
+        assertTrue(allArmorModes.contains(SortMode.PLATES_MODIFIER));
+        assertTrue(allArmorModes.contains(SortMode.TRIM_EXTRA_DURABILITY));
+        assertFalse(allArmorModes.contains(SortMode.HARVEST_LEVEL));
+        assertFalse(allArmorModes.contains(SortMode.MINING_SPEED));
+        assertFalse(allArmorModes.contains(SortMode.ATTACK_DAMAGE));
+        assertFalse(allArmorModes.contains(SortMode.HANDLE_MODIFIER));
+        assertFalse(allArmorModes.contains(SortMode.DRAW_SPEED));
+        assertFalse(allArmorModes.contains(SortMode.RANGE));
+
+        List<SortMode> toolModes = SortMode.getApplicableModes("materials");
+        assertFalse(toolModes.contains(SortMode.ARMOR_DEFENSE));
+        assertFalse(toolModes.contains(SortMode.ARMOR_TOUGHNESS));
+        assertFalse(toolModes.contains(SortMode.ARMOR_DURABILITY));
+        assertFalse(toolModes.contains(SortMode.PLATES_DURABILITY));
+        assertFalse(toolModes.contains(SortMode.PLATES_MODIFIER));
+        assertFalse(toolModes.contains(SortMode.TRIM_EXTRA_DURABILITY));
+    }
+
+    @Test
+    public void testArmorModeCycles() {
+        List<SortMode> modes = SortMode.getApplicableModes("armormaterials");
+        assertEquals(8, modes.size());
+        for (SortMode mode : modes) {
+            SortMode next = mode.next("armormaterials");
+            assertTrue(modes.contains(next), "Next mode should belong to armor modes");
+            SortMode prev = next.previous("armormaterials");
+            assertEquals(mode, prev, "Previous of next should be current mode in armormaterials");
+        }
+    }
+
+    @Test
+    public void testArmorySectionManagerState() {
+        com.shiver.tinkers_sort.book.ArmorySectionManager.applySort(null, SortMode.ARMOR_DEFENSE, SortOrder.DESCENDING, "铁");
+        assertEquals(SortMode.ARMOR_DEFENSE, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentMode());
+        assertEquals(SortOrder.DESCENDING, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentOrder());
+        assertEquals("铁", com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentQuery());
+
+        // Reset
+        com.shiver.tinkers_sort.book.ArmorySectionManager.reset(null);
+        assertEquals(SortMode.DEFAULT, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentMode());
+        assertEquals(SortOrder.ASCENDING, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentOrder());
+        assertEquals("", com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentQuery());
+    }
+
+    @Test
+    public void testArmoryIntegration() {
+        com.shiver.tinkers_sort.integration.ArmoryIntegration.setForceLoadedForTest(false);
+        assertFalse(com.shiver.tinkers_sort.integration.ArmoryIntegration.isLoaded());
+        assertFalse(com.shiver.tinkers_sort.integration.ArmoryIntegration.isArmoryBook(null));
+
+        com.shiver.tinkers_sort.integration.ArmoryIntegration.setForceLoadedForTest(true);
+        assertTrue(com.shiver.tinkers_sort.integration.ArmoryIntegration.isLoaded());
+        assertTrue(com.shiver.tinkers_sort.integration.ArmoryIntegration.isArmoryBook(c4.conarm.lib.book.ArmoryBook.INSTANCE));
+    }
+
+    @Test
+    public void testArmorMaterialComparator() {
+        slimeknights.tconstruct.library.materials.Material m1 = new slimeknights.tconstruct.library.materials.Material("mat1", 0xFFFFFF);
+        m1.addStats(new c4.conarm.lib.materials.CoreMaterialStats(100f, 15f));
+        m1.addStats(new c4.conarm.lib.materials.PlatesMaterialStats(1.2f, 80f, 3f));
+        m1.addStats(new c4.conarm.lib.materials.TrimMaterialStats(50f));
+
+        slimeknights.tconstruct.library.materials.Material m2 = new slimeknights.tconstruct.library.materials.Material("mat2", 0xAAAAAA);
+        m2.addStats(new c4.conarm.lib.materials.CoreMaterialStats(200f, 10f));
+        m2.addStats(new c4.conarm.lib.materials.PlatesMaterialStats(0.8f, 120f, 1f));
+        m2.addStats(new c4.conarm.lib.materials.TrimMaterialStats(30f));
+
+        // Test Defense
+        MaterialComparator compDefenseAsc = new MaterialComparator(SortMode.ARMOR_DEFENSE, SortOrder.ASCENDING);
+        assertTrue(compDefenseAsc.compare(m1, m2) > 0);
+        MaterialComparator compDefenseDesc = new MaterialComparator(SortMode.ARMOR_DEFENSE, SortOrder.DESCENDING);
+        assertTrue(compDefenseDesc.compare(m1, m2) < 0);
+
+        // Test Toughness
+        MaterialComparator compToughness = new MaterialComparator(SortMode.ARMOR_TOUGHNESS, SortOrder.DESCENDING);
+        assertTrue(compToughness.compare(m1, m2) < 0);
+
+        // Test Core Durability
+        MaterialComparator compDurability = new MaterialComparator(SortMode.ARMOR_DURABILITY, SortOrder.DESCENDING);
+        assertTrue(compDurability.compare(m1, m2) > 0);
+
+        // Test Plates Durability
+        MaterialComparator compPlatesDur = new MaterialComparator(SortMode.PLATES_DURABILITY, SortOrder.DESCENDING);
+        assertTrue(compPlatesDur.compare(m1, m2) > 0);
+
+        // Test Plates Modifier
+        MaterialComparator compPlatesMod = new MaterialComparator(SortMode.PLATES_MODIFIER, SortOrder.DESCENDING);
+        assertTrue(compPlatesMod.compare(m1, m2) < 0);
+
+        // Test Trim Extra Durability
+        MaterialComparator compTrim = new MaterialComparator(SortMode.TRIM_EXTRA_DURABILITY, SortOrder.DESCENDING);
+        assertTrue(compTrim.compare(m1, m2) < 0);
+    }
+
+    @Test
+    public void testArmorMaterialsUnifiedWithoutCategory() {
+        // Material with only core stats
+        slimeknights.tconstruct.library.materials.Material coreOnly = new slimeknights.tconstruct.library.materials.Material("core_mat", 0x111111);
+        coreOnly.addStats(new c4.conarm.lib.materials.CoreMaterialStats(100f, 15f));
+
+        // Material with only plates stats
+        slimeknights.tconstruct.library.materials.Material platesOnly = new slimeknights.tconstruct.library.materials.Material("plates_mat", 0x222222);
+        platesOnly.addStats(new c4.conarm.lib.materials.PlatesMaterialStats(1.0f, 100f, 2f));
+
+        // Material with only trim stats
+        slimeknights.tconstruct.library.materials.Material trimOnly = new slimeknights.tconstruct.library.materials.Material("trim_mat", 0x333333);
+        trimOnly.addStats(new c4.conarm.lib.materials.TrimMaterialStats(40f));
+
+        // Material with no armor stats
+        slimeknights.tconstruct.library.materials.Material noArmor = new slimeknights.tconstruct.library.materials.Material("tool_only", 0x444444);
+
+        assertTrue(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(coreOnly));
+        assertTrue(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(platesOnly));
+        assertTrue(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(trimOnly));
+        assertFalse(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(noArmor));
     }
 }
 

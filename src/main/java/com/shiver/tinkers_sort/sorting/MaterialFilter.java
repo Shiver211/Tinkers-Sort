@@ -1,5 +1,6 @@
 package com.shiver.tinkers_sort.sorting;
 
+import com.shiver.tinkers_sort.integration.JechHelper;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.traits.ITrait;
 

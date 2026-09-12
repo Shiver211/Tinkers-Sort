@@ -2,6 +2,8 @@ package com.shiver.tinkers_sort.client.gui;
 
 import com.shiver.tinkers_sort.book.MaterialSectionManager;
 import com.shiver.tinkers_sort.config.ModConfig;
+import com.shiver.tinkers_sort.integration.ArmoryIntegration;
+import com.shiver.tinkers_sort.integration.ArmoryToolbarHelper;
 import com.shiver.tinkers_sort.sorting.SortMode;
 import com.shiver.tinkers_sort.sorting.SortOrder;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -33,6 +35,7 @@ public class GuiSortToolbar {
     private static final String[] BOW_CATEGORIES = new String[] { MaterialTypes.BOW, MaterialTypes.BOWSTRING, MaterialTypes.SHAFT, MaterialTypes.FLETCHING };
 
     private boolean visible = false;
+    private boolean isArmory = false;
     private String currentSection = "materials";
     private String activeBowCategory = MaterialTypes.BOW;
 
@@ -73,11 +76,18 @@ public class GuiSortToolbar {
         int x, y, w, h;
     }
 
+    public boolean isArmoryMaterials() {
+        return isArmory && "materials".equalsIgnoreCase(currentSection);
+    }
+
     public boolean isBowMaterials() {
-        return "bowmaterials".equalsIgnoreCase(currentSection) || MaterialSectionManager.isBowCategory(currentSection);
+        return !isArmory && ("bowmaterials".equalsIgnoreCase(currentSection) || MaterialSectionManager.isBowCategory(currentSection));
     }
 
     public String getActiveTarget() {
+        if (isArmoryMaterials()) {
+            return "armormaterials";
+        }
         if (isBowMaterials()) {
             return (activeBowCategory != null && !"all".equalsIgnoreCase(activeBowCategory)) ? activeBowCategory : MaterialTypes.BOW;
         }
@@ -123,6 +133,8 @@ public class GuiSortToolbar {
             this.y = 16;
         }
 
+        this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
+
         SectionData sec = BookGuiHandler.getCurrentSection(guiBook);
         if (sec != null && sec.name != null) {
             this.currentSection = sec.name.toLowerCase();
@@ -130,14 +142,19 @@ public class GuiSortToolbar {
             this.currentSection = "materials";
         }
 
-        String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook, this.activeBowCategory);
-        this.activeBowCategory = detected != null ? detected : MaterialTypes.BOW;
+        if (this.isArmory) {
+            ArmoryToolbarHelper.init(guiBook.book);
+        } else {
+            String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook, this.activeBowCategory);
+            this.activeBowCategory = detected != null ? detected : MaterialTypes.BOW;
+        }
 
         FontRenderer fr = guiBook.mc.fontRenderer;
         this.searchField = new GuiTextField(1001, fr, x + searchX + 2, y + searchY + 2, searchW - 4, searchH - 4);
         this.searchField.setMaxStringLength(40);
         this.searchField.setEnableBackgroundDrawing(false);
-        this.searchField.setText(MaterialSectionManager.getCurrentQuery(this.currentSection));
+        String currentQuery = this.isArmory ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(this.currentSection);
+        this.searchField.setText(currentQuery);
         this.isDropdownOpen = false;
     }
 
@@ -162,7 +179,8 @@ public class GuiSortToolbar {
             this.currentSection = normalized;
             this.isDropdownOpen = false;
             if (this.searchField != null) {
-                this.searchField.setText(MaterialSectionManager.getCurrentQuery(this.currentSection));
+                String q = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(this.currentSection);
+                this.searchField.setText(q);
                 this.searchField.setFocused(false);
             }
         }
@@ -170,6 +188,8 @@ public class GuiSortToolbar {
 
     public void draw(GuiBook guiBook, int mouseX, int mouseY, float partialTicks) {
         if (!visible) return;
+
+        this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
 
         FontRenderer fr = guiBook.mc.fontRenderer;
         GlStateManager.pushMatrix();
@@ -182,6 +202,13 @@ public class GuiSortToolbar {
                 this.activeBowCategory = detected;
                 if (this.searchField != null && !this.searchField.isFocused()) {
                     this.searchField.setText(MaterialSectionManager.getCurrentQuery(getActiveTarget()));
+                }
+            }
+        } else if (isArmoryMaterials()) {
+            if (this.searchField != null && !this.searchField.isFocused()) {
+                String q = ArmoryToolbarHelper.getCurrentQuery();
+                if (!this.searchField.getText().equals(q)) {
+                    this.searchField.setText(q);
                 }
             }
         }
@@ -241,7 +268,7 @@ public class GuiSortToolbar {
         }
 
         // 3. Draw Sort Mode Button
-        SortMode currentMode = MaterialSectionManager.getCurrentMode(target);
+        SortMode currentMode = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentMode() : MaterialSectionManager.getCurrentMode(target);
         boolean hoverMode = isHovered(mouseX, mouseY, x + modeX, y + modeY, modeW, modeH);
         int modeBorder = (hoverMode || isDropdownOpen) ? 0xFF9E8A74 : 0xFF4A443C;
         int modeBg = (hoverMode || isDropdownOpen) ? 0xDD3E3E3E : 0xBB2A2A2A;
@@ -252,7 +279,7 @@ public class GuiSortToolbar {
         fr.drawString(modeText, x + modeX + (modeW - modeTextW) / 2, y + modeY + 4, 0xFFE0E0E0);
 
         // 4. Draw Sort Order Button
-        SortOrder currentOrder = MaterialSectionManager.getCurrentOrder(target);
+        SortOrder currentOrder = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentOrder() : MaterialSectionManager.getCurrentOrder(target);
         boolean hoverOrder = isHovered(mouseX, mouseY, x + orderX, y + orderY, orderW, orderH);
         int orderBorder = hoverOrder ? 0xFF9E8A74 : 0xFF4A443C;
         int orderBg = hoverOrder ? 0xDD3E3E3E : 0xBB2A2A2A;
@@ -313,7 +340,8 @@ public class GuiSortToolbar {
             boolean hoverClear = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + clearX, y + clearY, clearW, clearH);
             boolean hoverSearch = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + searchX, y + searchY, searchW, searchH);
             if (hoveredTab != null) {
-                GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.category." + hoveredTab.type + ".desc")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
+                String tooltipKey = isArmoryMaterials() ? ("tinkers_sort.category.armor." + hoveredTab.type + ".desc") : ("tinkers_sort.category." + hoveredTab.type + ".desc");
+                GuiUtils.drawHoveringText(Collections.singletonList(I18n.format(tooltipKey)), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverMode) {
                 GuiUtils.drawHoveringText(Collections.singletonList(currentMode.getDescription()), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverOrder) {
@@ -354,6 +382,8 @@ public class GuiSortToolbar {
     public boolean mouseClicked(GuiBook guiBook, int mouseX, int mouseY, int mouseButton) {
         if (!visible) return false;
 
+        this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
+
         // 0. Handle Category Tab click
         if (isBowMaterials()) {
             for (TabRect tr : getTabRects(guiBook.mc.fontRenderer)) {
@@ -382,7 +412,11 @@ public class GuiSortToolbar {
                 int clickedIndex = (mouseY - dropY - 2) / itemH;
                 if (clickedIndex >= 0 && clickedIndex < modes.size()) {
                     SortMode selected = modes.get(clickedIndex);
-                    MaterialSectionManager.applySort(guiBook.book, target, selected, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                    if (isArmoryMaterials()) {
+                        ArmoryToolbarHelper.applySort(guiBook.book, selected, ArmoryToolbarHelper.getCurrentOrder(), ArmoryToolbarHelper.getCurrentQuery());
+                    } else {
+                        MaterialSectionManager.applySort(guiBook.book, target, selected, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                    }
                     refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
@@ -411,7 +445,11 @@ public class GuiSortToolbar {
             if (isHovered(mouseX, mouseY, x + clearX, y + clearY, clearW, clearH)) {
                 if (searchField != null && !searchField.getText().isEmpty()) {
                     searchField.setText("");
-                    MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), "");
+                    if (isArmoryMaterials()) {
+                        ArmoryToolbarHelper.applySort(guiBook.book, ArmoryToolbarHelper.getCurrentMode(), ArmoryToolbarHelper.getCurrentOrder(), "");
+                    } else {
+                        MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), "");
+                    }
                     refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
@@ -424,8 +462,13 @@ public class GuiSortToolbar {
             if (mouseButton == 0) { // Left click toggles dropdown
                 isDropdownOpen = !isDropdownOpen;
             } else if (mouseButton == 1) { // Right click cycles mode directly
-                SortMode next = MaterialSectionManager.getCurrentMode(target).next(target);
-                MaterialSectionManager.applySort(guiBook.book, target, next, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                SortMode currentMode = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentMode() : MaterialSectionManager.getCurrentMode(target);
+                SortMode next = currentMode.next(target);
+                if (isArmoryMaterials()) {
+                    ArmoryToolbarHelper.applySort(guiBook.book, next, ArmoryToolbarHelper.getCurrentOrder(), ArmoryToolbarHelper.getCurrentQuery());
+                } else {
+                    MaterialSectionManager.applySort(guiBook.book, target, next, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                }
                 refreshBook(guiBook, currentSection, target);
             }
             playClickSound(guiBook);
@@ -434,8 +477,13 @@ public class GuiSortToolbar {
 
         // 4. Sort Order Button click
         if (isHovered(mouseX, mouseY, x + orderX, y + orderY, orderW, orderH)) {
-            SortOrder toggled = MaterialSectionManager.getCurrentOrder(target).toggle();
-            MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), toggled, MaterialSectionManager.getCurrentQuery(target));
+            if (isArmoryMaterials()) {
+                SortOrder toggled = ArmoryToolbarHelper.getCurrentOrder().toggle();
+                ArmoryToolbarHelper.applySort(guiBook.book, ArmoryToolbarHelper.getCurrentMode(), toggled, ArmoryToolbarHelper.getCurrentQuery());
+            } else {
+                SortOrder toggled = MaterialSectionManager.getCurrentOrder(target).toggle();
+                MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), toggled, MaterialSectionManager.getCurrentQuery(target));
+            }
             refreshBook(guiBook, currentSection, target);
             playClickSound(guiBook);
             return true;
@@ -446,7 +494,9 @@ public class GuiSortToolbar {
             if (searchField != null) {
                 searchField.setText("");
             }
-            if (mouseButton == 1 && isBowMaterials()) {
+            if (isArmoryMaterials()) {
+                ArmoryToolbarHelper.reset(guiBook.book);
+            } else if (mouseButton == 1 && isBowMaterials()) {
                 MaterialSectionManager.resetAllBowCategories(guiBook.book);
             } else {
                 MaterialSectionManager.applySort(guiBook.book, target, SortMode.DEFAULT, SortOrder.ASCENDING, "");
@@ -467,6 +517,8 @@ public class GuiSortToolbar {
     public boolean keyTyped(GuiBook guiBook, char typedChar, int keyCode) {
         if (!visible) return false;
 
+        this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
+
         if (keyCode == Keyboard.KEY_ESCAPE) {
             if (isDropdownOpen) {
                 isDropdownOpen = false;
@@ -485,7 +537,11 @@ public class GuiSortToolbar {
 
             if (!oldText.equals(newText)) {
                 String target = getActiveTarget();
-                MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), newText);
+                if (isArmoryMaterials()) {
+                    ArmoryToolbarHelper.applySort(guiBook.book, ArmoryToolbarHelper.getCurrentMode(), ArmoryToolbarHelper.getCurrentOrder(), newText);
+                } else {
+                    MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), newText);
+                }
                 refreshBook(guiBook, currentSection, target);
             }
             return true;

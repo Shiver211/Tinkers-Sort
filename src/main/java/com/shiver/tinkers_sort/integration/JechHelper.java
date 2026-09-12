@@ -1,4 +1,4 @@
-package com.shiver.tinkers_sort.sorting;
+package com.shiver.tinkers_sort.integration;
 
 import net.minecraftforge.fml.common.Loader;
 
