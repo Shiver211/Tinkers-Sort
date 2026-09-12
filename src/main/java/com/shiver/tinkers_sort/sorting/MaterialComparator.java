@@ -100,9 +100,6 @@ public class MaterialComparator implements Comparator<Material> {
             case FLETCHING_MODIFIER:
                 result = compareFletchingModifier(m1, m2);
                 break;
-            case MODIFIER:
-                result = compareGeneralModifier(m1, m2);
-                break;
         }
 
         // Secondary stable tie-breaker: fallback to default index
@@ -315,44 +312,5 @@ public class MaterialComparator implements Comparator<Material> {
         }
         int cmp = Float.compare(f1.modifier, f2.modifier);
         return order == SortOrder.DESCENDING ? -cmp : cmp;
-    }
-
-    private int compareGeneralModifier(Material m1, Material m2) {
-        Float mod1 = getModifier(m1);
-        Float mod2 = getModifier(m2);
-        boolean has1 = mod1 != null;
-        boolean has2 = mod2 != null;
-        if (has1 != has2) {
-            return has1 ? -1 : 1;
-        }
-        if (!has1) {
-            return 0;
-        }
-        int cmp = Float.compare(mod1, mod2);
-        return order == SortOrder.DESCENDING ? -cmp : cmp;
-    }
-
-    private Float getModifier(Material m) {
-        if (targetMaterialType != null) {
-            if (MaterialTypes.BOWSTRING.equals(targetMaterialType)) {
-                BowStringMaterialStats s = m.getStats(MaterialTypes.BOWSTRING);
-                if (s != null) return s.modifier;
-            } else if (MaterialTypes.SHAFT.equals(targetMaterialType)) {
-                ArrowShaftMaterialStats s = m.getStats(MaterialTypes.SHAFT);
-                if (s != null) return s.modifier;
-            } else if (MaterialTypes.FLETCHING.equals(targetMaterialType)) {
-                FletchingMaterialStats s = m.getStats(MaterialTypes.FLETCHING);
-                if (s != null) return s.modifier;
-            }
-        }
-        BowStringMaterialStats bs = m.getStats(MaterialTypes.BOWSTRING);
-        if (bs != null) return bs.modifier;
-        ArrowShaftMaterialStats as = m.getStats(MaterialTypes.SHAFT);
-        if (as != null) return as.modifier;
-        FletchingMaterialStats fs = m.getStats(MaterialTypes.FLETCHING);
-        if (fs != null) return fs.modifier;
-        HandleMaterialStats hm = m.getStats(MaterialTypes.HANDLE);
-        if (hm != null) return hm.modifier;
-        return null;
     }
 }

@@ -19,8 +19,7 @@ public enum SortMode {
     BONUS_AMMO("tinkers_sort.sort.bonus_ammo", "tinkers_sort.sort.bonus_ammo.desc", false, true, TargetCategory.SHAFT),
     SHAFT_MODIFIER("tinkers_sort.sort.shaft_modifier", "tinkers_sort.sort.shaft_modifier.desc", false, true, TargetCategory.SHAFT),
     ACCURACY("tinkers_sort.sort.accuracy", "tinkers_sort.sort.accuracy.desc", false, true, TargetCategory.FLETCHING),
-    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", false, true, TargetCategory.FLETCHING),
-    MODIFIER("tinkers_sort.sort.modifier", "tinkers_sort.sort.modifier.desc", false, true, TargetCategory.GENERAL_MODIFIER);
+    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", false, true, TargetCategory.FLETCHING);
 
     public enum TargetCategory {
         ALL,
@@ -29,8 +28,7 @@ public enum SortMode {
         BOW,
         BOWSTRING,
         SHAFT,
-        FLETCHING,
-        GENERAL_MODIFIER
+        FLETCHING
     }
 
     private final String unlocalizedName;
@@ -71,12 +69,12 @@ public enum SortMode {
         } else if ("bow".equals(s)) {
             return category == TargetCategory.ALL || category == TargetCategory.BOW || category == TargetCategory.TOOL_AND_BOW;
         } else if ("bowstring".equals(s)) {
-            return category == TargetCategory.ALL || category == TargetCategory.BOWSTRING || category == TargetCategory.GENERAL_MODIFIER;
+            return category == TargetCategory.ALL || category == TargetCategory.BOWSTRING;
         } else if ("shaft".equals(s)) {
-            return category == TargetCategory.ALL || category == TargetCategory.SHAFT || category == TargetCategory.GENERAL_MODIFIER;
+            return category == TargetCategory.ALL || category == TargetCategory.SHAFT;
         } else if ("fletching".equals(s)) {
-            return category == TargetCategory.ALL || category == TargetCategory.FLETCHING || category == TargetCategory.GENERAL_MODIFIER;
-        } else if ("bowmaterials".equals(s) || "all".equals(s)) {
+            return category == TargetCategory.ALL || category == TargetCategory.FLETCHING;
+        } else if ("bowmaterials".equals(s)) {
             return !toolSpecific || this == DURABILITY;
         }
         return true;

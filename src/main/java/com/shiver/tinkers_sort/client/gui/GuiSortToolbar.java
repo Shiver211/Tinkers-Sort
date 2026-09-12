@@ -30,11 +30,11 @@ public class GuiSortToolbar {
     public static final int TOOLBAR_HEIGHT = 20;
     public static final int TAB_HEIGHT = 14;
 
-    private static final String[] BOW_CATEGORIES = new String[] { "all", "bow", "bowstring", "shaft", "fletching" };
+    private static final String[] BOW_CATEGORIES = new String[] { MaterialTypes.BOW, MaterialTypes.BOWSTRING, MaterialTypes.SHAFT, MaterialTypes.FLETCHING };
 
     private boolean visible = false;
     private String currentSection = "materials";
-    private String activeBowCategory = "all";
+    private String activeBowCategory = MaterialTypes.BOW;
 
     private int x;
     private int y;
@@ -79,10 +79,7 @@ public class GuiSortToolbar {
 
     public String getActiveTarget() {
         if (isBowMaterials()) {
-            if ("all".equalsIgnoreCase(activeBowCategory) || "bowmaterials".equalsIgnoreCase(activeBowCategory)) {
-                return MaterialTypes.BOW;
-            }
-            return activeBowCategory;
+            return (activeBowCategory != null && !"all".equalsIgnoreCase(activeBowCategory)) ? activeBowCategory : MaterialTypes.BOW;
         }
         return currentSection;
     }
@@ -106,6 +103,19 @@ public class GuiSortToolbar {
         return rects;
     }
 
+    public String getActiveBowCategory() {
+        return activeBowCategory;
+    }
+
+    public void setActiveBowCategory(String category) {
+        if (category != null && !category.isEmpty() && !category.equalsIgnoreCase(this.activeBowCategory)) {
+            this.activeBowCategory = category;
+            if (this.searchField != null && !this.searchField.isFocused()) {
+                this.searchField.setText(MaterialSectionManager.getCurrentQuery(getActiveTarget()));
+            }
+        }
+    }
+
     public void init(GuiBook guiBook) {
         this.x = guiBook.width / 2 - TOOLBAR_WIDTH / 2;
         this.y = guiBook.height / 2 - GuiBook.PAGE_HEIGHT_UNSCALED / 2 + ModConfig.toolbarYOffset;
@@ -120,8 +130,8 @@ public class GuiSortToolbar {
             this.currentSection = "materials";
         }
 
-        String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook);
-        this.activeBowCategory = detected != null ? detected : "all";
+        String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook, this.activeBowCategory);
+        this.activeBowCategory = detected != null ? detected : MaterialTypes.BOW;
 
         FontRenderer fr = guiBook.mc.fontRenderer;
         this.searchField = new GuiTextField(1001, fr, x + searchX + 2, y + searchY + 2, searchW - 4, searchH - 4);
@@ -167,9 +177,12 @@ public class GuiSortToolbar {
 
         // Detect active bow category from book pages
         if (isBowMaterials()) {
-            String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook);
-            if (detected != null) {
+            String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook, this.activeBowCategory);
+            if (detected != null && !detected.equalsIgnoreCase(this.activeBowCategory)) {
                 this.activeBowCategory = detected;
+                if (this.searchField != null && !this.searchField.isFocused()) {
+                    this.searchField.setText(MaterialSectionManager.getCurrentQuery(getActiveTarget()));
+                }
             }
         }
 
@@ -339,7 +352,7 @@ public class GuiSortToolbar {
         if (isBowMaterials()) {
             for (TabRect tr : getTabRects(guiBook.mc.fontRenderer)) {
                 if (isHovered(mouseX, mouseY, tr.x, tr.y, tr.w, tr.h)) {
-                    this.activeBowCategory = tr.type;
+                    setActiveBowCategory(tr.type);
                     this.isDropdownOpen = false;
                     MaterialSectionManager.navigateToBowCategory(guiBook, tr.type);
                     playClickSound(guiBook);
@@ -364,9 +377,6 @@ public class GuiSortToolbar {
                 if (clickedIndex >= 0 && clickedIndex < modes.size()) {
                     SortMode selected = modes.get(clickedIndex);
                     MaterialSectionManager.applySort(guiBook.book, target, selected, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
-                    if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                        this.activeBowCategory = target;
-                    }
                     refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
@@ -396,9 +406,6 @@ public class GuiSortToolbar {
                 if (searchField != null && !searchField.getText().isEmpty()) {
                     searchField.setText("");
                     MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), "");
-                    if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                        this.activeBowCategory = target;
-                    }
                     refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
@@ -413,9 +420,6 @@ public class GuiSortToolbar {
             } else if (mouseButton == 1) { // Right click cycles mode directly
                 SortMode next = MaterialSectionManager.getCurrentMode(target).next(target);
                 MaterialSectionManager.applySort(guiBook.book, target, next, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
-                if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                    this.activeBowCategory = target;
-                }
                 refreshBook(guiBook, currentSection, target);
             }
             playClickSound(guiBook);
@@ -426,9 +430,6 @@ public class GuiSortToolbar {
         if (isHovered(mouseX, mouseY, x + orderX, y + orderY, orderW, orderH)) {
             SortOrder toggled = MaterialSectionManager.getCurrentOrder(target).toggle();
             MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), toggled, MaterialSectionManager.getCurrentQuery(target));
-            if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                this.activeBowCategory = target;
-            }
             refreshBook(guiBook, currentSection, target);
             playClickSound(guiBook);
             return true;
@@ -439,13 +440,10 @@ public class GuiSortToolbar {
             if (searchField != null) {
                 searchField.setText("");
             }
-            if (isBowMaterials() && "all".equalsIgnoreCase(activeBowCategory)) {
+            if (mouseButton == 1 && isBowMaterials()) {
                 MaterialSectionManager.resetAllBowCategories(guiBook.book);
             } else {
                 MaterialSectionManager.applySort(guiBook.book, target, SortMode.DEFAULT, SortOrder.ASCENDING, "");
-            }
-            if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                this.activeBowCategory = target;
             }
             refreshBook(guiBook, currentSection, target);
             playClickSound(guiBook);
@@ -482,9 +480,6 @@ public class GuiSortToolbar {
             if (!oldText.equals(newText)) {
                 String target = getActiveTarget();
                 MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), newText);
-                if ("all".equalsIgnoreCase(this.activeBowCategory)) {
-                    this.activeBowCategory = target;
-                }
                 refreshBook(guiBook, currentSection, target);
             }
             return true;

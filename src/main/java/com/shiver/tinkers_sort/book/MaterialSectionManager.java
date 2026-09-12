@@ -73,7 +73,7 @@ public class MaterialSectionManager {
     public static boolean isBowCategory(String sectionName) {
         if (sectionName == null) return false;
         String s = normalizeSectionKey(sectionName);
-        return BOW_MATERIAL_TYPES.contains(s) || "bowmaterials".equals(s) || "all".equals(s);
+        return BOW_MATERIAL_TYPES.contains(s) || "bowmaterials".equals(s);
     }
 
     public static SectionState getSectionState(String sectionName) {
@@ -367,7 +367,6 @@ public class MaterialSectionManager {
 
         data.pages.clear();
         bowCategoryFirstPages.clear();
-        bowCategoryFirstPages.put("all", 0);
 
         SectionState overallState = getSectionState("bowmaterials");
         String searchQuery = overallState.query;
@@ -456,22 +455,6 @@ public class MaterialSectionManager {
     }
 
     public static Integer getBowCategoryPageIndex(String type) {
-        if (type == null) {
-            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
-            return bowIdx != null ? bowIdx : 1;
-        }
-        String key = normalizeSectionKey(type);
-        if ("bowmaterials".equalsIgnoreCase(key)) {
-            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
-            return bowIdx != null ? bowIdx : 1;
-        }
-        if ("all".equalsIgnoreCase(key)) {
-            return 0;
-        }
-        return bowCategoryFirstPages.get(key);
-    }
-
-    public static Integer getBowMaterialIconPageIndex(String type) {
         if (type == null || "all".equalsIgnoreCase(type) || "bowmaterials".equalsIgnoreCase(type)) {
             Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
             return bowIdx != null ? bowIdx : 1;
@@ -482,6 +465,10 @@ public class MaterialSectionManager {
             return bowIdx != null ? bowIdx : 1;
         }
         return idx;
+    }
+
+    public static Integer getBowMaterialIconPageIndex(String type) {
+        return getBowCategoryPageIndex(type);
     }
 
     public static void navigateToBowCategory(GuiBook guiBook, String type) {
@@ -499,6 +486,10 @@ public class MaterialSectionManager {
     }
 
     public static String detectCurrentBowCategory(GuiBook guiBook) {
+        return detectCurrentBowCategory(guiBook, null);
+    }
+
+    public static String detectCurrentBowCategory(GuiBook guiBook, String preferredCategory) {
         if (guiBook == null || guiBook.book == null) return null;
         ensureSectionsInitialized(guiBook.book);
         int page = guiBook.getPage_();
@@ -506,7 +497,15 @@ public class MaterialSectionManager {
 
         if (page == 0) {
             PageData p = guiBook.book.findPage(0, guiBook.advancementCache);
-            return getBowTypeForPage(p);
+            String type = getBowTypeForPage(p);
+            if (type != null) return type;
+            if (p != null && p.content instanceof ContentListing) {
+                if (preferredCategory != null && isBowCategory(preferredCategory) && !"all".equalsIgnoreCase(preferredCategory)) {
+                    return preferredCategory;
+                }
+                return MaterialTypes.BOW;
+            }
+            return null;
         }
 
         int leftPageNum = (page - 1) * 2 + 1;
@@ -515,17 +514,51 @@ public class MaterialSectionManager {
         int rightPageNum = (page - 1) * 2 + 2;
         PageData rightPage = guiBook.book.findPage(rightPageNum, guiBook.advancementCache);
 
-        String type = getBowTypeForPage(leftPage);
-        if (type != null) return type;
-        type = getBowTypeForPage(rightPage);
-        if (type != null) return type;
+        return arbitrateBowCategory(leftPage, rightPage, preferredCategory);
+    }
 
-        if ((leftPage != null && leftPage.content instanceof ContentListing) ||
-            (rightPage != null && rightPage.content instanceof ContentListing)) {
-            return "all";
+    public static String arbitrateBowCategory(PageData leftPage, PageData rightPage, String preferredCategory) {
+        String leftType = getBowTypeForPage(leftPage);
+        String rightType = getBowTypeForPage(rightPage);
+
+        if (leftType == null && rightType == null) {
+            if ((leftPage != null && leftPage.content instanceof ContentListing) ||
+                (rightPage != null && rightPage.content instanceof ContentListing)) {
+                if (preferredCategory != null && isBowCategory(preferredCategory) && !"all".equalsIgnoreCase(preferredCategory)) {
+                    return preferredCategory;
+                }
+                return MaterialTypes.BOW;
+            }
+            return null;
         }
 
-        return null;
+        if (leftType != null && rightType == null) return leftType;
+        if (leftType == null && rightType != null) return rightType;
+        if (leftType.equalsIgnoreCase(rightType)) return leftType;
+
+        // Both pages have bow categories and they differ (Split Spread)
+        // Tier 1: Context continuity (user's preferred / active category)
+        if (preferredCategory != null && !preferredCategory.isEmpty() && !"all".equalsIgnoreCase(preferredCategory)) {
+            if (preferredCategory.equalsIgnoreCase(leftType)) {
+                return leftType;
+            }
+            if (preferredCategory.equalsIgnoreCase(rightType)) {
+                return rightType;
+            }
+        }
+
+        // Tier 2: Content structural weight: Overview/Icon list page takes precedence over trailing detail page
+        boolean leftIsIconList = leftPage != null && leftPage.content instanceof ContentPageIconList;
+        boolean rightIsIconList = rightPage != null && rightPage.content instanceof ContentPageIconList;
+        if (rightIsIconList && !leftIsIconList) {
+            return rightType;
+        }
+        if (leftIsIconList && !rightIsIconList) {
+            return leftType;
+        }
+
+        // Fallback: Natural left-to-right reading order
+        return leftType;
     }
 
     public static String getBowTypeForPage(PageData page) {

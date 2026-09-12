@@ -38,11 +38,7 @@ tinkers_sort.sort.accuracy=Accuracy
 tinkers_sort.sort.accuracy.desc=Sort by fletching accuracy
 tinkers_sort.sort.fletching_modifier=Fletching Modifier
 tinkers_sort.sort.fletching_modifier.desc=Sort by fletching durability modifier
-tinkers_sort.sort.modifier=Modifier
-tinkers_sort.sort.modifier.desc=Sort by part attribute modifier
 
-tinkers_sort.category.all=All
-tinkers_sort.category.all.desc=View bow materials catalog
 tinkers_sort.category.bow=Bow
 tinkers_sort.category.bow.desc=Bow limb materials (Draw Speed, Range, Arrow Damage, Durability)
 tinkers_sort.category.bowstring=Bowstring

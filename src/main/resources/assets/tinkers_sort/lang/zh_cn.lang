@@ -38,11 +38,7 @@ tinkers_sort.sort.accuracy=准确度
 tinkers_sort.sort.accuracy.desc=按箭羽射击精准度/准确度排序
 tinkers_sort.sort.fletching_modifier=箭羽系数
 tinkers_sort.sort.fletching_modifier.desc=按箭羽耐久加成系数排序
-tinkers_sort.sort.modifier=属性系数
-tinkers_sort.sort.modifier.desc=按部件对应的属性加成系数排序
 
-tinkers_sort.category.all=全部
-tinkers_sort.category.all.desc=查看全部弓材料目录
 tinkers_sort.category.bow=弓
 tinkers_sort.category.bow.desc=弓臂材料 (拉弓速度/射程倍率/额外伤害/基础耐久)
 tinkers_sort.category.bowstring=弓弦

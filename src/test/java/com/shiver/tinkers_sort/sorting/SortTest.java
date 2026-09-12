@@ -142,6 +142,7 @@ public class SortTest {
         assertFalse(bowModes.contains(SortMode.FLETCHING_MODIFIER));
 
         List<SortMode> stringModes = SortMode.getApplicableModes("bowstring");
+        assertEquals(3, stringModes.size());
         assertTrue(stringModes.contains(SortMode.DEFAULT));
         assertTrue(stringModes.contains(SortMode.NAME));
         assertTrue(stringModes.contains(SortMode.BOWSTRING_MODIFIER));
@@ -149,6 +150,7 @@ public class SortTest {
         assertFalse(stringModes.contains(SortMode.BONUS_AMMO));
 
         List<SortMode> shaftModes = SortMode.getApplicableModes("shaft");
+        assertEquals(4, shaftModes.size());
         assertTrue(shaftModes.contains(SortMode.DEFAULT));
         assertTrue(shaftModes.contains(SortMode.NAME));
         assertTrue(shaftModes.contains(SortMode.SHAFT_MODIFIER));
@@ -157,6 +159,7 @@ public class SortTest {
         assertFalse(shaftModes.contains(SortMode.ACCURACY));
 
         List<SortMode> fletchingModes = SortMode.getApplicableModes("fletching");
+        assertEquals(4, fletchingModes.size());
         assertTrue(fletchingModes.contains(SortMode.DEFAULT));
         assertTrue(fletchingModes.contains(SortMode.NAME));
         assertTrue(fletchingModes.contains(SortMode.ACCURACY));
@@ -235,7 +238,7 @@ public class SortTest {
 
     @Test
     public void testBowCategoryPageIndices() {
-        assertEquals(Integer.valueOf(0), MaterialSectionManager.getBowCategoryPageIndex("all"));
+        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex("all"));
         assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex("bowmaterials"));
         assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex("all"));
         assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex("bowmaterials"));
@@ -268,6 +271,44 @@ public class SortTest {
         slimeknights.mantle.client.book.data.PageData fletchingOverview = new slimeknights.mantle.client.book.data.PageData();
         fletchingOverview.name = "fletching_overview_0";
         assertEquals("fletching", MaterialSectionManager.getBowTypeForPage(fletchingOverview));
+    }
+
+    @Test
+    public void testSplitSpreadCategoryArbitration() {
+        slimeknights.mantle.client.book.data.PageData stringDetail = new slimeknights.mantle.client.book.data.PageData();
+        stringDetail.name = "bowstring_detail_page";
+
+        slimeknights.mantle.client.book.data.PageData fletchingOverview = new slimeknights.mantle.client.book.data.PageData();
+        fletchingOverview.name = "fletching_overview_0";
+        fletchingOverview.content = new slimeknights.tconstruct.library.book.content.ContentPageIconList();
+
+        // 1. When user preferredCategory matches one of the sides, it should stick to it
+        assertEquals("bowstring", MaterialSectionManager.arbitrateBowCategory(stringDetail, fletchingOverview, "bowstring"));
+        assertEquals("fletching", MaterialSectionManager.arbitrateBowCategory(stringDetail, fletchingOverview, "fletching"));
+
+        // 2. When preferredCategory is "all" or null, ContentPageIconList wins over detail page
+        assertEquals("fletching", MaterialSectionManager.arbitrateBowCategory(stringDetail, fletchingOverview, "all"));
+        assertEquals("fletching", MaterialSectionManager.arbitrateBowCategory(stringDetail, fletchingOverview, null));
+
+        // 3. When neither is ContentPageIconList, fallback to left page
+        slimeknights.mantle.client.book.data.PageData fletchingDetail = new slimeknights.mantle.client.book.data.PageData();
+        fletchingDetail.name = "fletching_feather";
+        assertEquals("bowstring", MaterialSectionManager.arbitrateBowCategory(stringDetail, fletchingDetail, null));
+
+        // 4. When both pages are the same category, returns that category
+        slimeknights.mantle.client.book.data.PageData stringOverview = new slimeknights.mantle.client.book.data.PageData();
+        stringOverview.name = "bowstring_overview_0";
+        assertEquals("bowstring", MaterialSectionManager.arbitrateBowCategory(stringOverview, stringDetail, "fletching"));
+
+        // 5. One page is null
+        assertEquals("bowstring", MaterialSectionManager.arbitrateBowCategory(stringDetail, null, null));
+        assertEquals("fletching", MaterialSectionManager.arbitrateBowCategory(null, fletchingOverview, null));
+
+        // 6. TOC listing page
+        slimeknights.mantle.client.book.data.PageData tocPage = new slimeknights.mantle.client.book.data.PageData();
+        tocPage.content = new slimeknights.tconstruct.library.book.content.ContentListing();
+        assertEquals("bow", MaterialSectionManager.arbitrateBowCategory(tocPage, null, null));
+        assertEquals("shaft", MaterialSectionManager.arbitrateBowCategory(tocPage, null, "shaft"));
     }
 }
 
