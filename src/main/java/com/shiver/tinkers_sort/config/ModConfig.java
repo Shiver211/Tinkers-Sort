@@ -10,13 +10,45 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 @Config(modid = Tags.MOD_ID, name = Tags.MOD_ID)
 public class ModConfig {
 
-    @Config.Comment("Default sorting mode when opening the book (DEFAULT, NAME, HARVEST_LEVEL, DURABILITY, MINING_SPEED, ATTACK_DAMAGE)")
+    @Config.Comment("Default sorting mode for tool materials (DEFAULT, NAME, HARVEST_LEVEL, DURABILITY, MINING_SPEED, ATTACK_DAMAGE)")
     @Config.Name("DefaultSortMode")
     public static String defaultSortMode = "DEFAULT";
 
-    @Config.Comment("Default sort order: true for ascending (A-Z / low to high), false for descending (Z-A / high to low)")
+    @Config.Comment("Default sort order for tool materials: true for ascending (A-Z / low to high), false for descending (Z-A / high to low)")
     @Config.Name("DefaultAscending")
     public static boolean defaultAscending = true;
+
+    @Config.Comment("Default sorting mode for bow materials / limbs (DEFAULT, NAME, DURABILITY, DRAW_SPEED, RANGE, BONUS_DAMAGE)")
+    @Config.Name("DefaultBowSortMode")
+    public static String defaultBowSortMode = "DEFAULT";
+
+    @Config.Comment("Default sort order for bow materials / limbs: true for ascending, false for descending")
+    @Config.Name("DefaultBowAscending")
+    public static boolean defaultBowAscending = true;
+
+    @Config.Comment("Default sorting mode for bowstring materials (DEFAULT, NAME, BOWSTRING_MODIFIER)")
+    @Config.Name("DefaultBowstringSortMode")
+    public static String defaultBowstringSortMode = "DEFAULT";
+
+    @Config.Comment("Default sort order for bowstring materials: true for ascending, false for descending")
+    @Config.Name("DefaultBowstringAscending")
+    public static boolean defaultBowstringAscending = true;
+
+    @Config.Comment("Default sorting mode for arrow shaft materials (DEFAULT, NAME, BONUS_AMMO, SHAFT_MODIFIER)")
+    @Config.Name("DefaultShaftSortMode")
+    public static String defaultShaftSortMode = "DEFAULT";
+
+    @Config.Comment("Default sort order for arrow shaft materials: true for ascending, false for descending")
+    @Config.Name("DefaultShaftAscending")
+    public static boolean defaultShaftAscending = true;
+
+    @Config.Comment("Default sorting mode for fletching materials (DEFAULT, NAME, ACCURACY, FLETCHING_MODIFIER)")
+    @Config.Name("DefaultFletchingSortMode")
+    public static String defaultFletchingSortMode = "DEFAULT";
+
+    @Config.Comment("Default sort order for fletching materials: true for ascending, false for descending")
+    @Config.Name("DefaultFletchingAscending")
+    public static boolean defaultFletchingAscending = true;
 
     @Config.Comment("Whether to remember the last used sort mode and order across sessions")
     @Config.Name("RememberLastSort")

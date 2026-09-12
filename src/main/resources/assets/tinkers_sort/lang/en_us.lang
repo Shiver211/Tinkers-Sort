@@ -28,4 +28,27 @@ tinkers_sort.sort.range=Range
 tinkers_sort.sort.range.desc=Sort by bow range multiplier
 tinkers_sort.sort.bonus_damage=Arrow Damage
 tinkers_sort.sort.bonus_damage.desc=Sort by arrow bonus damage
+tinkers_sort.sort.bowstring_modifier=String Modifier
+tinkers_sort.sort.bowstring_modifier.desc=Sort by bowstring draw speed modifier
+tinkers_sort.sort.bonus_ammo=Bonus Ammo
+tinkers_sort.sort.bonus_ammo.desc=Sort by arrow shaft bonus ammo
+tinkers_sort.sort.shaft_modifier=Shaft Modifier
+tinkers_sort.sort.shaft_modifier.desc=Sort by arrow shaft durability modifier
+tinkers_sort.sort.accuracy=Accuracy
+tinkers_sort.sort.accuracy.desc=Sort by fletching accuracy
+tinkers_sort.sort.fletching_modifier=Fletching Modifier
+tinkers_sort.sort.fletching_modifier.desc=Sort by fletching durability modifier
+tinkers_sort.sort.modifier=Modifier
+tinkers_sort.sort.modifier.desc=Sort by part attribute modifier
+
+tinkers_sort.category.all=All
+tinkers_sort.category.all.desc=View bow materials catalog
+tinkers_sort.category.bow=Bow
+tinkers_sort.category.bow.desc=Bow limb materials (Draw Speed, Range, Arrow Damage, Durability)
+tinkers_sort.category.bowstring=Bowstring
+tinkers_sort.category.bowstring.desc=Bowstring materials (String Modifier)
+tinkers_sort.category.shaft=Shaft
+tinkers_sort.category.shaft.desc=Arrow shaft materials (Bonus Ammo, Shaft Modifier)
+tinkers_sort.category.fletching=Fletching
+tinkers_sort.category.fletching.desc=Fletching materials (Accuracy, Fletching Modifier)
 

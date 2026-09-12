@@ -39,6 +39,7 @@ public class BookGuiHandler {
     public void onMouseInput(GuiScreenEvent.MouseInputEvent.Pre event) {
         if (event.getGui() instanceof GuiBook) {
             GuiBook guiBook = (GuiBook) event.getGui();
+            updateToolbarVisibility(guiBook);
             if (Mouse.getEventButtonState()) {
                 int mouseX = Mouse.getEventX() * guiBook.width / guiBook.mc.displayWidth;
                 int mouseY = guiBook.height - Mouse.getEventY() * guiBook.height / guiBook.mc.displayHeight - 1;
@@ -55,6 +56,7 @@ public class BookGuiHandler {
     public void onKeyboardInput(GuiScreenEvent.KeyboardInputEvent.Pre event) {
         if (event.getGui() instanceof GuiBook) {
             GuiBook guiBook = (GuiBook) event.getGui();
+            updateToolbarVisibility(guiBook);
             if (Keyboard.getEventKeyState()) {
                 char typedChar = Keyboard.getEventCharacter();
                 int keyCode = Keyboard.getEventKey();

@@ -14,6 +14,7 @@ import slimeknights.mantle.client.book.data.PageData;
 import slimeknights.mantle.client.book.data.SectionData;
 import slimeknights.mantle.client.book.repository.BookRepository;
 import slimeknights.mantle.client.book.data.element.ImageData;
+import slimeknights.mantle.client.gui.book.GuiBook;
 import slimeknights.mantle.client.gui.book.element.ElementImage;
 import slimeknights.mantle.client.gui.book.element.ElementItem;
 import slimeknights.mantle.client.gui.book.element.SizedBookElement;
@@ -31,19 +32,55 @@ import java.util.stream.Collectors;
 @SideOnly(Side.CLIENT)
 public class MaterialSectionManager {
 
-    private static final List<String> BOW_MATERIAL_TYPES = ImmutableList.of(
+    public static final List<String> BOW_MATERIAL_TYPES = ImmutableList.of(
             MaterialTypes.BOW, MaterialTypes.BOWSTRING, MaterialTypes.SHAFT, MaterialTypes.FLETCHING
     );
+    public static final String SUB_BOW = MaterialTypes.BOW;
+    public static final String SUB_BOWSTRING = MaterialTypes.BOWSTRING;
+    public static final String SUB_SHAFT = MaterialTypes.SHAFT;
+    public static final String SUB_FLETCHING = MaterialTypes.FLETCHING;
 
     private static List<Material> rawToolMaterials = new ArrayList<>();
     private static Map<String, Integer> defaultToolIndices = new HashMap<>();
 
     private static Map<String, List<Material>> rawBowMaterials = new HashMap<>();
     private static Map<String, Map<String, Integer>> defaultBowIndices = new HashMap<>();
+    private static final Map<String, Integer> bowCategoryFirstPages = new HashMap<>();
 
-    private static SortMode currentMode = SortMode.DEFAULT;
-    private static SortOrder currentOrder = SortOrder.ASCENDING;
-    private static String currentQuery = "";
+    public static class SectionState {
+        public SortMode mode;
+        public SortOrder order;
+        public String query;
+
+        public SectionState(SortMode mode, SortOrder order, String query) {
+            this.mode = mode != null ? mode : SortMode.DEFAULT;
+            this.order = order != null ? order : SortOrder.ASCENDING;
+            this.query = query != null ? query : "";
+        }
+    }
+
+    private static final Map<String, SectionState> sectionStates = new HashMap<>();
+
+    public static String normalizeSectionKey(String sectionName) {
+        if (sectionName == null || sectionName.trim().isEmpty()) return "materials";
+        String s = sectionName.trim().toLowerCase();
+        if (s.startsWith("bowmaterials:")) {
+            return s.substring("bowmaterials:".length());
+        }
+        return s;
+    }
+
+    public static boolean isBowCategory(String sectionName) {
+        if (sectionName == null) return false;
+        String s = normalizeSectionKey(sectionName);
+        return BOW_MATERIAL_TYPES.contains(s) || "bowmaterials".equals(s) || "all".equals(s);
+    }
+
+    public static SectionState getSectionState(String sectionName) {
+        String key = normalizeSectionKey(sectionName);
+        return sectionStates.computeIfAbsent(key, k -> new SectionState(SortMode.DEFAULT, SortOrder.ASCENDING, ""));
+    }
+
     private static boolean initialized = false;
 
     public static void ensureSectionsInitialized(BookData book) {
@@ -145,56 +182,117 @@ public class MaterialSectionManager {
             defaultBowIndices.put(type, indexMap);
         }
 
-        // Load configured defaults
+        // Load configured defaults for tools
+        SectionState toolState = getSectionState("materials");
         if (ModConfig.rememberLastSort) {
-            try {
-                currentMode = SortMode.valueOf(ModConfig.defaultSortMode);
-            } catch (Exception e) {
-                currentMode = SortMode.DEFAULT;
-            }
-            currentOrder = ModConfig.defaultAscending ? SortOrder.ASCENDING : SortOrder.DESCENDING;
+            loadConfiguredState("materials", ModConfig.defaultSortMode, ModConfig.defaultAscending);
+        }
+
+        // Load configured defaults for bows and subcategories
+        if (ModConfig.rememberLastSort) {
+            loadConfiguredState("bowmaterials", ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
+            loadConfiguredState(MaterialTypes.BOW, ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
+            loadConfiguredState(MaterialTypes.BOWSTRING, ModConfig.defaultBowstringSortMode, ModConfig.defaultBowstringAscending);
+            loadConfiguredState(MaterialTypes.SHAFT, ModConfig.defaultShaftSortMode, ModConfig.defaultShaftAscending);
+            loadConfiguredState(MaterialTypes.FLETCHING, ModConfig.defaultFletchingSortMode, ModConfig.defaultFletchingAscending);
         }
 
         initialized = true;
 
-        if (currentMode != SortMode.DEFAULT || currentOrder != SortOrder.ASCENDING) {
-            applySort(book, "materials", currentMode, currentOrder, currentQuery);
+        if (toolState.mode != SortMode.DEFAULT || toolState.order != SortOrder.ASCENDING) {
+            rebuildToolMaterials(book);
         }
+        rebuildBowMaterials(book);
+    }
+
+    private static void loadConfiguredState(String section, String modeName, boolean ascending) {
+        SectionState state = getSectionState(section);
+        try {
+            SortMode m = SortMode.valueOf(modeName);
+            if (m.isApplicable(section)) {
+                state.mode = m;
+            }
+        } catch (Exception ignored) {
+            state.mode = SortMode.DEFAULT;
+        }
+        state.order = ascending ? SortOrder.ASCENDING : SortOrder.DESCENDING;
     }
 
     public static SortMode getCurrentMode() {
-        return currentMode;
+        return getCurrentMode("materials");
     }
 
     public static SortOrder getCurrentOrder() {
-        return currentOrder;
+        return getCurrentOrder("materials");
     }
 
     public static String getCurrentQuery() {
-        return currentQuery;
+        return getCurrentQuery("materials");
+    }
+
+    public static SortMode getCurrentMode(String sectionName) {
+        return getSectionState(sectionName).mode;
+    }
+
+    public static SortOrder getCurrentOrder(String sectionName) {
+        return getSectionState(sectionName).order;
+    }
+
+    public static String getCurrentQuery(String sectionName) {
+        return getSectionState(sectionName).query;
     }
 
     public static void applySort(BookData book, String sectionName, SortMode mode, SortOrder order, String query) {
         if (!initialized) {
-            init(book);
+            if (book != null) {
+                init(book);
+            }
         }
 
-        currentMode = mode;
-        currentOrder = order;
-        currentQuery = query == null ? "" : query.trim();
+        String key = normalizeSectionKey(sectionName);
+        SectionState state = getSectionState(key);
+        state.mode = mode;
+        state.order = order;
+        String trimmedQuery = query == null ? "" : query.trim();
+        state.query = trimmedQuery;
 
-        if (ModConfig.rememberLastSort) {
-            ModConfig.defaultSortMode = mode.name();
-            ModConfig.defaultAscending = (order == SortOrder.ASCENDING);
-            ModConfig.save();
-        }
+        if (isBowCategory(key)) {
+            // Keep bow query in sync across all bow categories
+            getSectionState("bowmaterials").query = trimmedQuery;
+            for (String t : BOW_MATERIAL_TYPES) {
+                getSectionState(t).query = trimmedQuery;
+            }
 
-        if ("materials".equalsIgnoreCase(sectionName)) {
-            rebuildToolMaterials(book);
-        } else if ("bowmaterials".equalsIgnoreCase(sectionName)) {
+            if ("bowmaterials".equals(key)) {
+                SectionState bowSub = getSectionState(MaterialTypes.BOW);
+                bowSub.mode = mode;
+                bowSub.order = order;
+            }
+
+            if (ModConfig.rememberLastSort) {
+                if (MaterialTypes.BOW.equals(key) || "bowmaterials".equals(key)) {
+                    ModConfig.defaultBowSortMode = mode.name();
+                    ModConfig.defaultBowAscending = (order == SortOrder.ASCENDING);
+                } else if (MaterialTypes.BOWSTRING.equals(key)) {
+                    ModConfig.defaultBowstringSortMode = mode.name();
+                    ModConfig.defaultBowstringAscending = (order == SortOrder.ASCENDING);
+                } else if (MaterialTypes.SHAFT.equals(key)) {
+                    ModConfig.defaultShaftSortMode = mode.name();
+                    ModConfig.defaultShaftAscending = (order == SortOrder.ASCENDING);
+                } else if (MaterialTypes.FLETCHING.equals(key)) {
+                    ModConfig.defaultFletchingSortMode = mode.name();
+                    ModConfig.defaultFletchingAscending = (order == SortOrder.ASCENDING);
+                }
+                ModConfig.save();
+            }
+
             rebuildBowMaterials(book);
         } else {
-            // Default to rebuilding materials
+            if (ModConfig.rememberLastSort) {
+                ModConfig.defaultSortMode = mode.name();
+                ModConfig.defaultAscending = (order == SortOrder.ASCENDING);
+                ModConfig.save();
+            }
             rebuildToolMaterials(book);
         }
     }
@@ -210,9 +308,10 @@ public class MaterialSectionManager {
 
         data.pages.clear();
 
+        SectionState state = getSectionState("materials");
         List<Material> filtered = rawToolMaterials.stream()
-                .filter(m -> MaterialFilter.matches(m, currentQuery))
-                .sorted(new MaterialComparator(currentMode, currentOrder, defaultToolIndices))
+                .filter(m -> MaterialFilter.matches(m, state.query))
+                .sorted(new MaterialComparator(state.mode, state.order, defaultToolIndices))
                 .collect(Collectors.toList());
 
         String sectionTitle = book.translate("materials");
@@ -267,6 +366,11 @@ public class MaterialSectionManager {
         }
 
         data.pages.clear();
+        bowCategoryFirstPages.clear();
+        bowCategoryFirstPages.put("all", 0);
+
+        SectionState overallState = getSectionState("bowmaterials");
+        String searchQuery = overallState.query;
 
         ContentListing listing = new ContentListing();
         listing.title = book.translate("bowmaterials");
@@ -274,7 +378,7 @@ public class MaterialSectionManager {
         PageData listingPage = new PageData(true);
         listingPage.source = data.source != null ? data.source : BookRepository.DUMMY;
         listingPage.parent = data;
-        listingPage.name = "bowmaterials";
+        listingPage.name = "bowmaterials_toc";
         listingPage.type = "";
         listingPage.content = listing;
         listingPage.load();
@@ -285,15 +389,35 @@ public class MaterialSectionManager {
             List<Material> list = rawBowMaterials.get(type);
             if (list == null) continue;
 
+            SectionState typeState = getSectionState(type);
+            SortMode modeToUse = typeState.mode;
+            SortOrder orderToUse = typeState.order;
+            if (modeToUse == SortMode.DEFAULT && overallState.mode != SortMode.DEFAULT && overallState.mode.isApplicable(type)) {
+                modeToUse = overallState.mode;
+                orderToUse = overallState.order;
+            }
+
+            String q = !typeState.query.isEmpty() ? typeState.query : searchQuery;
+
             List<Material> filtered = list.stream()
-                    .filter(m -> MaterialFilter.matches(m, currentQuery))
-                    .sorted(new MaterialComparator(currentMode, currentOrder, defaultBowIndices.get(type)))
+                    .filter(m -> MaterialFilter.matches(m, q))
+                    .sorted(new MaterialComparator(modeToUse, orderToUse, defaultBowIndices.get(type), type))
                     .collect(Collectors.toList());
 
             if (filtered.isEmpty()) continue;
 
+            bowCategoryFirstPages.put(type, pageIndex);
+
             String statName = Material.UNKNOWN.getStats(type).getLocalizedName();
             List<ContentPageIconList> contentPages = ContentPageIconList.getPagesNeededForItemCount(filtered.size(), data, statName);
+            int iconIdx = 0;
+            for (int i = pageIndex; i < data.pages.size(); i++) {
+                PageData p = data.pages.get(i);
+                if (p.content instanceof ContentPageIconList) {
+                    p.name = type + "_overview_" + (iconIdx++);
+                }
+            }
+
             ListIterator<ContentPageIconList> iter = contentPages.listIterator();
             ContentPageIconList currentOverview = iter.next();
             contentPages.forEach(p -> p.maxScale = 1f);
@@ -329,6 +453,145 @@ public class MaterialSectionManager {
                 listing.addEntry(statName, data.pages.get(pageIndex));
             }
         }
+    }
+
+    public static Integer getBowCategoryPageIndex(String type) {
+        if (type == null) {
+            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
+            return bowIdx != null ? bowIdx : 1;
+        }
+        String key = normalizeSectionKey(type);
+        if ("bowmaterials".equalsIgnoreCase(key)) {
+            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
+            return bowIdx != null ? bowIdx : 1;
+        }
+        if ("all".equalsIgnoreCase(key)) {
+            return 0;
+        }
+        return bowCategoryFirstPages.get(key);
+    }
+
+    public static Integer getBowMaterialIconPageIndex(String type) {
+        if (type == null || "all".equalsIgnoreCase(type) || "bowmaterials".equalsIgnoreCase(type)) {
+            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
+            return bowIdx != null ? bowIdx : 1;
+        }
+        Integer idx = bowCategoryFirstPages.get(normalizeSectionKey(type));
+        if (idx == null) {
+            Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
+            return bowIdx != null ? bowIdx : 1;
+        }
+        return idx;
+    }
+
+    public static void navigateToBowCategory(GuiBook guiBook, String type) {
+        if (guiBook == null || guiBook.book == null) return;
+        ensureSectionsInitialized(guiBook.book);
+        SectionData section = findSection(guiBook.book, "bowmaterials");
+        if (section == null) return;
+        Integer relIndex = getBowCategoryPageIndex(type);
+        if (relIndex == null) return;
+        int firstPageNum = guiBook.book.getFirstPageNumber(section, guiBook.advancementCache);
+        if (firstPageNum >= 0) {
+            guiBook.openPage(firstPageNum + relIndex);
+            guiBook.updateScreen();
+        }
+    }
+
+    public static String detectCurrentBowCategory(GuiBook guiBook) {
+        if (guiBook == null || guiBook.book == null) return null;
+        ensureSectionsInitialized(guiBook.book);
+        int page = guiBook.getPage_();
+        if (page < 0) return null;
+
+        if (page == 0) {
+            PageData p = guiBook.book.findPage(0, guiBook.advancementCache);
+            return getBowTypeForPage(p);
+        }
+
+        int leftPageNum = (page - 1) * 2 + 1;
+        PageData leftPage = guiBook.book.findPage(leftPageNum, guiBook.advancementCache);
+
+        int rightPageNum = (page - 1) * 2 + 2;
+        PageData rightPage = guiBook.book.findPage(rightPageNum, guiBook.advancementCache);
+
+        String type = getBowTypeForPage(leftPage);
+        if (type != null) return type;
+        type = getBowTypeForPage(rightPage);
+        if (type != null) return type;
+
+        if ((leftPage != null && leftPage.content instanceof ContentListing) ||
+            (rightPage != null && rightPage.content instanceof ContentListing)) {
+            return "all";
+        }
+
+        return null;
+    }
+
+    public static String getBowTypeForPage(PageData page) {
+        if (page == null) return null;
+        if (page.content instanceof ContentSingleStatMultMaterial) {
+            return ((ContentSingleStatMultMaterial) page.content).materialType;
+        }
+        if (page.content instanceof ContentPageIconList) {
+            String pageTitle = ((ContentPageIconList) page.content).title;
+            if (pageTitle != null) {
+                for (String type : new String[]{MaterialTypes.BOWSTRING, MaterialTypes.SHAFT, MaterialTypes.FLETCHING, MaterialTypes.BOW}) {
+                    try {
+                        String statName = Material.UNKNOWN.getStats(type).getLocalizedName();
+                        if (pageTitle.equalsIgnoreCase(statName)) {
+                            return type;
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+        if (page.name != null) {
+            // Check longer types first, or match exact/underscore-separated prefix
+            if (page.name.equals(MaterialTypes.BOWSTRING) || page.name.startsWith(MaterialTypes.BOWSTRING + "_")) {
+                return MaterialTypes.BOWSTRING;
+            }
+            if (page.name.equals(MaterialTypes.SHAFT) || page.name.startsWith(MaterialTypes.SHAFT + "_")) {
+                return MaterialTypes.SHAFT;
+            }
+            if (page.name.equals(MaterialTypes.FLETCHING) || page.name.startsWith(MaterialTypes.FLETCHING + "_")) {
+                return MaterialTypes.FLETCHING;
+            }
+            if (page.name.equals(MaterialTypes.BOW) || page.name.startsWith(MaterialTypes.BOW + "_")) {
+                return MaterialTypes.BOW;
+            }
+        }
+        return null;
+    }
+    public static void resetAllBowCategories() {
+        resetAllBowCategories(null);
+    }
+
+    public static void resetAllBowCategories(BookData book) {
+        getSectionState("bowmaterials").mode = SortMode.DEFAULT;
+        getSectionState("bowmaterials").order = SortOrder.ASCENDING;
+        getSectionState("bowmaterials").query = "";
+
+        for (String type : BOW_MATERIAL_TYPES) {
+            SectionState s = getSectionState(type);
+            s.mode = SortMode.DEFAULT;
+            s.order = SortOrder.ASCENDING;
+            s.query = "";
+        }
+
+        if (ModConfig.rememberLastSort) {
+            ModConfig.defaultBowSortMode = "DEFAULT";
+            ModConfig.defaultBowAscending = true;
+            ModConfig.defaultBowstringSortMode = "DEFAULT";
+            ModConfig.defaultBowstringAscending = true;
+            ModConfig.defaultShaftSortMode = "DEFAULT";
+            ModConfig.defaultShaftAscending = true;
+            ModConfig.defaultFletchingSortMode = "DEFAULT";
+            ModConfig.defaultFletchingAscending = true;
+            ModConfig.save();
+        }
+
+        rebuildBowMaterials(book);
     }
 }
 

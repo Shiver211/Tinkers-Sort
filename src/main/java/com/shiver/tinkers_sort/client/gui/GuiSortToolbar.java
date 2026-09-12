@@ -17,7 +17,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import slimeknights.mantle.client.book.data.SectionData;
 import slimeknights.mantle.client.gui.book.GuiBook;
+import slimeknights.tconstruct.library.materials.MaterialTypes;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,9 +28,13 @@ public class GuiSortToolbar {
 
     public static final int TOOLBAR_WIDTH = 340;
     public static final int TOOLBAR_HEIGHT = 20;
+    public static final int TAB_HEIGHT = 14;
+
+    private static final String[] BOW_CATEGORIES = new String[] { "all", "bow", "bowstring", "shaft", "fletching" };
 
     private boolean visible = false;
     private String currentSection = "materials";
+    private String activeBowCategory = "all";
 
     private int x;
     private int y;
@@ -62,18 +68,66 @@ public class GuiSortToolbar {
     private final int resetW = 22;
     private final int resetH = 16;
 
+    private static class TabRect {
+        String type;
+        int x, y, w, h;
+    }
+
+    public boolean isBowMaterials() {
+        return "bowmaterials".equalsIgnoreCase(currentSection) || MaterialSectionManager.isBowCategory(currentSection);
+    }
+
+    public String getActiveTarget() {
+        if (isBowMaterials()) {
+            if ("all".equalsIgnoreCase(activeBowCategory) || "bowmaterials".equalsIgnoreCase(activeBowCategory)) {
+                return MaterialTypes.BOW;
+            }
+            return activeBowCategory;
+        }
+        return currentSection;
+    }
+
+    private List<TabRect> getTabRects(FontRenderer fr) {
+        List<TabRect> rects = new ArrayList<>();
+        int curX = x + 4;
+        int tabY = y - TAB_HEIGHT;
+        for (String type : BOW_CATEGORIES) {
+            String name = I18n.format("tinkers_sort.category." + type);
+            int tabW = fr.getStringWidth(name) + 8;
+            TabRect tr = new TabRect();
+            tr.type = type;
+            tr.x = curX;
+            tr.y = tabY;
+            tr.w = tabW;
+            tr.h = TAB_HEIGHT;
+            rects.add(tr);
+            curX += tabW + 2;
+        }
+        return rects;
+    }
+
     public void init(GuiBook guiBook) {
         this.x = guiBook.width / 2 - TOOLBAR_WIDTH / 2;
         this.y = guiBook.height / 2 - GuiBook.PAGE_HEIGHT_UNSCALED / 2 + ModConfig.toolbarYOffset;
-        if (this.y < 4) {
-            this.y = 4;
+        if (this.y < 16) {
+            this.y = 16;
         }
+
+        SectionData sec = BookGuiHandler.getCurrentSection(guiBook);
+        if (sec != null && sec.name != null) {
+            this.currentSection = sec.name.toLowerCase();
+        } else {
+            this.currentSection = "materials";
+        }
+
+        String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook);
+        this.activeBowCategory = detected != null ? detected : "all";
 
         FontRenderer fr = guiBook.mc.fontRenderer;
         this.searchField = new GuiTextField(1001, fr, x + searchX + 2, y + searchY + 2, searchW - 4, searchH - 4);
         this.searchField.setMaxStringLength(40);
         this.searchField.setEnableBackgroundDrawing(false);
-        this.searchField.setText(MaterialSectionManager.getCurrentQuery());
+        this.searchField.setText(MaterialSectionManager.getCurrentQuery(this.currentSection));
         this.isDropdownOpen = false;
     }
 
@@ -92,7 +146,16 @@ public class GuiSortToolbar {
     }
 
     public void setCurrentSection(String sectionName) {
-        this.currentSection = sectionName;
+        if (sectionName == null) sectionName = "materials";
+        String normalized = sectionName.toLowerCase();
+        if (!normalized.equals(this.currentSection)) {
+            this.currentSection = normalized;
+            this.isDropdownOpen = false;
+            if (this.searchField != null) {
+                this.searchField.setText(MaterialSectionManager.getCurrentQuery(this.currentSection));
+                this.searchField.setFocused(false);
+            }
+        }
     }
 
     public void draw(GuiBook guiBook, int mouseX, int mouseY, float partialTicks) {
@@ -101,6 +164,41 @@ public class GuiSortToolbar {
         FontRenderer fr = guiBook.mc.fontRenderer;
         GlStateManager.pushMatrix();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+        // Detect active bow category from book pages
+        if (isBowMaterials()) {
+            String detected = MaterialSectionManager.detectCurrentBowCategory(guiBook);
+            if (detected != null) {
+                this.activeBowCategory = detected;
+            }
+        }
+
+        String target = getActiveTarget();
+
+        // 0. Draw Category Tabs if bow materials
+        TabRect hoveredTab = null;
+        if (isBowMaterials()) {
+            List<TabRect> tabs = getTabRects(fr);
+            for (TabRect tr : tabs) {
+                boolean isHover = isHovered(mouseX, mouseY, tr.x, tr.y, tr.w, tr.h);
+                boolean isActive = tr.type.equalsIgnoreCase(activeBowCategory);
+                if (isHover) hoveredTab = tr;
+
+                String name = I18n.format("tinkers_sort.category." + tr.type);
+                int textW = fr.getStringWidth(name);
+
+                if (isActive) {
+                    drawBorderedRect(tr.x, tr.y, tr.w, tr.h + 1, 0xFF9E8A74, 0xEE2A2A2A);
+                    fr.drawString(name, tr.x + (tr.w - textW) / 2, tr.y + 3, 0xFFFFAA00);
+                } else if (isHover) {
+                    drawBorderedRect(tr.x, tr.y, tr.w, tr.h, 0xFF7A7064, 0xDD2A2A2A);
+                    fr.drawString(name, tr.x + (tr.w - textW) / 2, tr.y + 3, 0xFFFFFFFF);
+                } else {
+                    drawBorderedRect(tr.x, tr.y, tr.w, tr.h, 0xFF4A443C, 0xBB181818);
+                    fr.drawString(name, tr.x + (tr.w - textW) / 2, tr.y + 3, 0xFFAAAAAA);
+                }
+            }
+        }
 
         // 1. Draw Toolbar Outer Box
         drawBorderedRect(x, y, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, 0xFF5A5248, 0xEE1E1E1E);
@@ -130,7 +228,7 @@ public class GuiSortToolbar {
         }
 
         // 3. Draw Sort Mode Button
-        SortMode currentMode = MaterialSectionManager.getCurrentMode();
+        SortMode currentMode = MaterialSectionManager.getCurrentMode(target);
         boolean hoverMode = isHovered(mouseX, mouseY, x + modeX, y + modeY, modeW, modeH);
         int modeBorder = (hoverMode || isDropdownOpen) ? 0xFF9E8A74 : 0xFF4A443C;
         int modeBg = (hoverMode || isDropdownOpen) ? 0xDD3E3E3E : 0xBB2A2A2A;
@@ -141,7 +239,7 @@ public class GuiSortToolbar {
         fr.drawString(modeText, x + modeX + (modeW - modeTextW) / 2, y + modeY + 4, 0xFFE0E0E0);
 
         // 4. Draw Sort Order Button
-        SortOrder currentOrder = MaterialSectionManager.getCurrentOrder();
+        SortOrder currentOrder = MaterialSectionManager.getCurrentOrder(target);
         boolean hoverOrder = isHovered(mouseX, mouseY, x + orderX, y + orderY, orderW, orderH);
         int orderBorder = hoverOrder ? 0xFF9E8A74 : 0xFF4A443C;
         int orderBg = hoverOrder ? 0xDD3E3E3E : 0xBB2A2A2A;
@@ -163,7 +261,7 @@ public class GuiSortToolbar {
 
         // 6. Draw Dropdown if open
         if (isDropdownOpen) {
-            List<SortMode> modes = SortMode.getApplicableModes(currentSection);
+            List<SortMode> modes = SortMode.getApplicableModes(target);
             int dropX = x + modeX;
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
@@ -194,7 +292,9 @@ public class GuiSortToolbar {
         if (!isDropdownOpen) {
             boolean hoverClear = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + clearX, y + clearY, clearW, clearH);
             boolean hoverSearch = ModConfig.enableSearch && isHovered(mouseX, mouseY, x + searchX, y + searchY, searchW, searchH);
-            if (hoverMode) {
+            if (hoveredTab != null) {
+                GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.category." + hoveredTab.type + ".desc")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
+            } else if (hoverMode) {
                 GuiUtils.drawHoveringText(Collections.singletonList(currentMode.getDescription()), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverOrder) {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.order_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
@@ -212,7 +312,7 @@ public class GuiSortToolbar {
             }
         } else {
             // Check tooltip for dropdown hovered item
-            List<SortMode> modes = SortMode.getApplicableModes(currentSection);
+            List<SortMode> modes = SortMode.getApplicableModes(target);
             int dropX = x + modeX;
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
@@ -235,9 +335,24 @@ public class GuiSortToolbar {
     public boolean mouseClicked(GuiBook guiBook, int mouseX, int mouseY, int mouseButton) {
         if (!visible) return false;
 
+        // 0. Handle Category Tab click
+        if (isBowMaterials()) {
+            for (TabRect tr : getTabRects(guiBook.mc.fontRenderer)) {
+                if (isHovered(mouseX, mouseY, tr.x, tr.y, tr.w, tr.h)) {
+                    this.activeBowCategory = tr.type;
+                    this.isDropdownOpen = false;
+                    MaterialSectionManager.navigateToBowCategory(guiBook, tr.type);
+                    playClickSound(guiBook);
+                    return true;
+                }
+            }
+        }
+
+        String target = getActiveTarget();
+
         // 1. Handle Dropdown click if open
         if (isDropdownOpen) {
-            List<SortMode> modes = SortMode.getApplicableModes(currentSection);
+            List<SortMode> modes = SortMode.getApplicableModes(target);
             int dropX = x + modeX;
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
@@ -248,8 +363,11 @@ public class GuiSortToolbar {
                 int clickedIndex = (mouseY - dropY - 2) / itemH;
                 if (clickedIndex >= 0 && clickedIndex < modes.size()) {
                     SortMode selected = modes.get(clickedIndex);
-                    MaterialSectionManager.applySort(guiBook.book, currentSection, selected, MaterialSectionManager.getCurrentOrder(), MaterialSectionManager.getCurrentQuery());
-                    refreshBook(guiBook, currentSection);
+                    MaterialSectionManager.applySort(guiBook.book, target, selected, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                    if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                        this.activeBowCategory = target;
+                    }
+                    refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
                 isDropdownOpen = false;
@@ -277,8 +395,11 @@ public class GuiSortToolbar {
             if (isHovered(mouseX, mouseY, x + clearX, y + clearY, clearW, clearH)) {
                 if (searchField != null && !searchField.getText().isEmpty()) {
                     searchField.setText("");
-                    MaterialSectionManager.applySort(guiBook.book, currentSection, MaterialSectionManager.getCurrentMode(), MaterialSectionManager.getCurrentOrder(), "");
-                    refreshBook(guiBook, currentSection);
+                    MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), "");
+                    if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                        this.activeBowCategory = target;
+                    }
+                    refreshBook(guiBook, currentSection, target);
                     playClickSound(guiBook);
                 }
                 return true;
@@ -290,9 +411,12 @@ public class GuiSortToolbar {
             if (mouseButton == 0) { // Left click toggles dropdown
                 isDropdownOpen = !isDropdownOpen;
             } else if (mouseButton == 1) { // Right click cycles mode directly
-                SortMode next = MaterialSectionManager.getCurrentMode().next(currentSection);
-                MaterialSectionManager.applySort(guiBook.book, currentSection, next, MaterialSectionManager.getCurrentOrder(), MaterialSectionManager.getCurrentQuery());
-                refreshBook(guiBook, currentSection);
+                SortMode next = MaterialSectionManager.getCurrentMode(target).next(target);
+                MaterialSectionManager.applySort(guiBook.book, target, next, MaterialSectionManager.getCurrentOrder(target), MaterialSectionManager.getCurrentQuery(target));
+                if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                    this.activeBowCategory = target;
+                }
+                refreshBook(guiBook, currentSection, target);
             }
             playClickSound(guiBook);
             return true;
@@ -300,9 +424,12 @@ public class GuiSortToolbar {
 
         // 4. Sort Order Button click
         if (isHovered(mouseX, mouseY, x + orderX, y + orderY, orderW, orderH)) {
-            SortOrder toggled = MaterialSectionManager.getCurrentOrder().toggle();
-            MaterialSectionManager.applySort(guiBook.book, currentSection, MaterialSectionManager.getCurrentMode(), toggled, MaterialSectionManager.getCurrentQuery());
-            refreshBook(guiBook, currentSection);
+            SortOrder toggled = MaterialSectionManager.getCurrentOrder(target).toggle();
+            MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), toggled, MaterialSectionManager.getCurrentQuery(target));
+            if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                this.activeBowCategory = target;
+            }
+            refreshBook(guiBook, currentSection, target);
             playClickSound(guiBook);
             return true;
         }
@@ -312,8 +439,15 @@ public class GuiSortToolbar {
             if (searchField != null) {
                 searchField.setText("");
             }
-            MaterialSectionManager.applySort(guiBook.book, currentSection, SortMode.DEFAULT, SortOrder.ASCENDING, "");
-            refreshBook(guiBook, currentSection);
+            if (isBowMaterials() && "all".equalsIgnoreCase(activeBowCategory)) {
+                MaterialSectionManager.resetAllBowCategories(guiBook.book);
+            } else {
+                MaterialSectionManager.applySort(guiBook.book, target, SortMode.DEFAULT, SortOrder.ASCENDING, "");
+            }
+            if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                this.activeBowCategory = target;
+            }
+            refreshBook(guiBook, currentSection, target);
             playClickSound(guiBook);
             return true;
         }
@@ -346,8 +480,12 @@ public class GuiSortToolbar {
             String newText = searchField.getText();
 
             if (!oldText.equals(newText)) {
-                MaterialSectionManager.applySort(guiBook.book, currentSection, MaterialSectionManager.getCurrentMode(), MaterialSectionManager.getCurrentOrder(), newText);
-                refreshBook(guiBook, currentSection);
+                String target = getActiveTarget();
+                MaterialSectionManager.applySort(guiBook.book, target, MaterialSectionManager.getCurrentMode(target), MaterialSectionManager.getCurrentOrder(target), newText);
+                if ("all".equalsIgnoreCase(this.activeBowCategory)) {
+                    this.activeBowCategory = target;
+                }
+                refreshBook(guiBook, currentSection, target);
             }
             return true;
         }
@@ -356,10 +494,14 @@ public class GuiSortToolbar {
     }
 
     public static void refreshBook(GuiBook guiBook) {
-        refreshBook(guiBook, null);
+        refreshBook(guiBook, null, null);
     }
 
     public static void refreshBook(GuiBook guiBook, String sectionName) {
+        refreshBook(guiBook, sectionName, null);
+    }
+
+    public static void refreshBook(GuiBook guiBook, String sectionName, String subcategory) {
         if (guiBook == null || guiBook.book == null) return;
 
         MaterialSectionManager.ensureSectionsInitialized(guiBook.book);
@@ -369,7 +511,12 @@ public class GuiSortToolbar {
             if (section != null) {
                 int firstPageNum = guiBook.book.getFirstPageNumber(section, guiBook.advancementCache);
                 if (firstPageNum >= 0) {
-                    guiBook.openPage(firstPageNum);
+                    int offset = 0;
+                    if (MaterialSectionManager.isBowCategory(sectionName)) {
+                        Integer subIndex = MaterialSectionManager.getBowMaterialIconPageIndex(subcategory);
+                        offset = (subIndex != null) ? subIndex : 1;
+                    }
+                    guiBook.openPage(firstPageNum + offset);
                     guiBook.updateScreen();
                     return;
                 }
