@@ -270,7 +270,14 @@ public class GuiSortToolbar {
 
         String resetText = "↺";
         int resetTextW = fr.getStringWidth(resetText);
-        fr.drawString(resetText, x + resetX + (resetW - resetTextW) / 2 + 1, y + resetY + 4, hoverReset ? 0xFFFFAA00 : 0xFFCCCCCC);
+        GlStateManager.pushMatrix();
+        float resetScale = 1.4F;
+        float resetCenterX = x + resetX + resetW / 2.0F;
+        float resetCenterY = y + resetY + resetH / 2.0F;
+        GlStateManager.translate(resetCenterX, resetCenterY, 0);
+        GlStateManager.scale(resetScale, resetScale, 1.0F);
+        fr.drawString(resetText, -resetTextW / 2, -fr.FONT_HEIGHT / 2, hoverReset ? 0xFFFFAA00 : 0xFFCCCCCC);
+        GlStateManager.popMatrix();
 
         // 6. Draw Dropdown if open
         if (isDropdownOpen) {
@@ -279,7 +286,7 @@ public class GuiSortToolbar {
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
             int dropH = modes.size() * itemH + 4;
-            int dropW = modeW + 10;
+            int dropW = modeW;
 
             // Render on top
             GlStateManager.translate(0, 0, 300);
@@ -317,7 +324,6 @@ public class GuiSortToolbar {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.clear_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverSearch) {
                 List<String> tooltip = java.util.Arrays.asList(
-                        I18n.format("tinkers_sort.gui.search_tooltip.title"),
                         I18n.format("tinkers_sort.gui.search_tooltip.name"),
                         I18n.format("tinkers_sort.gui.search_tooltip.trait")
                 );
@@ -329,7 +335,7 @@ public class GuiSortToolbar {
             int dropX = x + modeX;
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
-            int dropW = modeW + 10;
+            int dropW = modeW;
 
             if (mouseX >= dropX && mouseX <= dropX + dropW) {
                 for (int i = 0; i < modes.size(); i++) {
@@ -370,7 +376,7 @@ public class GuiSortToolbar {
             int dropY = y + modeY + modeH + 2;
             int itemH = 15;
             int dropH = modes.size() * itemH + 4;
-            int dropW = modeW + 10;
+            int dropW = modeW;
 
             if (mouseX >= dropX && mouseX <= dropX + dropW && mouseY >= dropY && mouseY <= dropY + dropH) {
                 int clickedIndex = (mouseY - dropY - 2) / itemH;

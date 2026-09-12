@@ -6,9 +6,8 @@ tinkers_sort.gui.search=Search...
 tinkers_sort.gui.clear_tooltip=Clear search query
 tinkers_sort.gui.order_tooltip=Click to toggle Ascending / Descending
 tinkers_sort.gui.reset_tooltip=Reset sort and clear search
-tinkers_sort.gui.search_tooltip.title=§6Search Help§r
-tinkers_sort.gui.search_tooltip.name=§7• Direct input: Search by material name / ID§r
-tinkers_sort.gui.search_tooltip.trait=§b• #trait§r: Search by material trait (e.g. §e#slimy§r, §e#momentum§r)
+tinkers_sort.gui.search_tooltip.name=• Direct input: Search by material name
+tinkers_sort.gui.search_tooltip.trait=• #trait: Search by material trait
 
 tinkers_sort.sort.default=Default
 tinkers_sort.sort.default.desc=Original mod registration order
