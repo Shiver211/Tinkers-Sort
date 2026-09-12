@@ -120,7 +120,7 @@ public class GuiSortToolbar {
     public void setActiveBowCategory(String category) {
         if (category != null && !category.isEmpty() && !category.equalsIgnoreCase(this.activeBowCategory)) {
             this.activeBowCategory = category;
-            if (this.searchField != null && !this.searchField.isFocused()) {
+            if (this.searchField != null) {
                 this.searchField.setText(MaterialSectionManager.getCurrentQuery(getActiveTarget()));
             }
         }
@@ -153,7 +153,7 @@ public class GuiSortToolbar {
         this.searchField = new GuiTextField(1001, fr, x + searchX + 2, y + searchY + 2, searchW - 4, searchH - 4);
         this.searchField.setMaxStringLength(40);
         this.searchField.setEnableBackgroundDrawing(false);
-        String currentQuery = this.isArmory ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(this.currentSection);
+        String currentQuery = this.isArmory ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(getActiveTarget());
         this.searchField.setText(currentQuery);
         this.isDropdownOpen = false;
     }
@@ -183,7 +183,7 @@ public class GuiSortToolbar {
             this.currentSection = normalized;
             this.isDropdownOpen = false;
             if (this.searchField != null) {
-                String q = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(this.currentSection);
+                String q = isArmoryMaterials() ? ArmoryToolbarHelper.getCurrentQuery() : MaterialSectionManager.getCurrentQuery(getActiveTarget());
                 this.searchField.setText(q);
                 this.searchField.setFocused(false);
             }
@@ -392,6 +392,9 @@ public class GuiSortToolbar {
         if (isBowMaterials()) {
             for (TabRect tr : getTabRects(guiBook.mc.fontRenderer)) {
                 if (isHovered(mouseX, mouseY, tr.x, tr.y, tr.w, tr.h)) {
+                    if (this.searchField != null) {
+                        this.searchField.setFocused(false);
+                    }
                     setActiveBowCategory(tr.type);
                     this.isDropdownOpen = false;
                     MaterialSectionManager.navigateToBowCategory(guiBook, tr.type);

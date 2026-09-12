@@ -239,13 +239,12 @@ public class MaterialSectionManager {
         state.query = trimmedQuery;
 
         if (isBowCategory(key)) {
-            // Keep bow query in sync across all bow categories
-            getSectionState("bowmaterials").query = trimmedQuery;
-            for (String t : BOW_MATERIAL_TYPES) {
-                getSectionState(t).query = trimmedQuery;
-            }
-
             if ("bowmaterials".equals(key)) {
+                // When explicitly configuring the entire bowmaterials section, sync query to all subcategories
+                getSectionState("bowmaterials").query = trimmedQuery;
+                for (String t : BOW_MATERIAL_TYPES) {
+                    getSectionState(t).query = trimmedQuery;
+                }
                 SectionState bowSub = getSectionState(MaterialTypes.BOW);
                 bowSub.mode = mode;
                 bowSub.order = order;
@@ -378,7 +377,7 @@ public class MaterialSectionManager {
                 orderToUse = overallState.order;
             }
 
-            String q = !typeState.query.isEmpty() ? typeState.query : searchQuery;
+            String q = typeState.query != null ? typeState.query : "";
 
             List<Material> filtered = list.stream()
                     .filter(m -> MaterialFilter.matches(m, q))
