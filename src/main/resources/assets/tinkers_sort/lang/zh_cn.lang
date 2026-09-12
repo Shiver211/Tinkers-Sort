@@ -1,8 +1,7 @@
-# 匠魂宝典实时排序 - 中文本地化
 tinkers_sort.order.ascending=升序
 tinkers_sort.order.descending=降序
 
-tinkers_sort.gui.search=搜索材料...
+tinkers_sort.gui.search=搜索...
 tinkers_sort.gui.clear_tooltip=清空搜索内容
 tinkers_sort.gui.order_tooltip=点击切换 升序 / 降序
 tinkers_sort.gui.reset_tooltip=重置为默认排序并清空搜索
