@@ -180,18 +180,14 @@ public class MaterialSectionManager {
 
         // Load configured defaults for tools
         SectionState toolState = getSectionState("materials");
-        if (ModConfig.rememberLastSort) {
-            loadConfiguredState("materials", ModConfig.defaultSortMode, ModConfig.defaultAscending);
-        }
+        loadConfiguredState("materials", ModConfig.defaultSortMode, ModConfig.defaultAscending);
 
         // Load configured defaults for bows and subcategories
-        if (ModConfig.rememberLastSort) {
-            loadConfiguredState("bowmaterials", ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
-            loadConfiguredState(MaterialTypes.BOW, ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
-            loadConfiguredState(MaterialTypes.BOWSTRING, ModConfig.defaultBowstringSortMode, ModConfig.defaultBowstringAscending);
-            loadConfiguredState(MaterialTypes.SHAFT, ModConfig.defaultShaftSortMode, ModConfig.defaultShaftAscending);
-            loadConfiguredState(MaterialTypes.FLETCHING, ModConfig.defaultFletchingSortMode, ModConfig.defaultFletchingAscending);
-        }
+        loadConfiguredState("bowmaterials", ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
+        loadConfiguredState(MaterialTypes.BOW, ModConfig.defaultBowSortMode, ModConfig.defaultBowAscending);
+        loadConfiguredState(MaterialTypes.BOWSTRING, ModConfig.defaultBowstringSortMode, ModConfig.defaultBowstringAscending);
+        loadConfiguredState(MaterialTypes.SHAFT, ModConfig.defaultShaftSortMode, ModConfig.defaultShaftAscending);
+        loadConfiguredState(MaterialTypes.FLETCHING, ModConfig.defaultFletchingSortMode, ModConfig.defaultFletchingAscending);
 
         initialized = true;
 
@@ -207,6 +203,8 @@ public class MaterialSectionManager {
             SortMode m = SortMode.valueOf(modeName);
             if (m.isApplicable(section)) {
                 state.mode = m;
+            } else {
+                state.mode = SortMode.DEFAULT;
             }
         } catch (Exception ignored) {
             state.mode = SortMode.DEFAULT;
@@ -286,7 +284,7 @@ public class MaterialSectionManager {
         SectionData data = findSection(book, "materials");
         if (data == null) return;
 
-        if (rawToolMaterials.isEmpty()) {
+        if (!initialized) {
             init(book);
         }
 
@@ -345,7 +343,7 @@ public class MaterialSectionManager {
         SectionData data = findSection(book, "bowmaterials");
         if (data == null) return;
 
-        if (rawBowMaterials.isEmpty()) {
+        if (!initialized) {
             init(book);
         }
 
@@ -387,11 +385,23 @@ public class MaterialSectionManager {
                     .sorted(new MaterialComparator(modeToUse, orderToUse, defaultBowIndices.get(type)))
                     .collect(Collectors.toList());
 
-            if (filtered.isEmpty()) continue;
-
             bowCategoryFirstPages.put(type, pageIndex);
-
             String statName = Material.UNKNOWN.getStats(type).getLocalizedName();
+
+            if (filtered.isEmpty()) {
+                ContentPageIconList emptyOverview = new ContentPageIconList();
+                emptyOverview.title = statName;
+                emptyOverview.maxScale = 1f;
+                PageData emptyPage = new PageData(true);
+                emptyPage.source = data.source != null ? data.source : BookRepository.DUMMY;
+                emptyPage.parent = data;
+                emptyPage.name = type + "_overview_0";
+                emptyPage.content = emptyOverview;
+                emptyPage.load();
+                data.pages.add(emptyPage);
+                listing.addEntry(statName, emptyPage);
+                continue;
+            }
             List<ContentPageIconList> contentPages = ContentPageIconList.getPagesNeededForItemCount(filtered.size(), data, statName);
             int iconIdx = 0;
             for (int i = pageIndex; i < data.pages.size(); i++) {
@@ -425,7 +435,7 @@ public class MaterialSectionManager {
                         icon = new ElementImage(ImageData.MISSING);
                     }
 
-                    if (!currentOverview.addLink(icon, material.getLocalizedNameColored(), page)) {
+                    while (!currentOverview.addLink(icon, material.getLocalizedNameColored(), page)) {
                         if (!iter.hasNext()) break;
                         currentOverview = iter.next();
                     }
@@ -441,12 +451,14 @@ public class MaterialSectionManager {
     public static Integer getBowCategoryPageIndex(String type) {
         if (type == null || "all".equalsIgnoreCase(type) || "bowmaterials".equalsIgnoreCase(type)) {
             Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
-            return bowIdx != null ? bowIdx : 1;
+            if (bowIdx != null) return bowIdx;
+            return bowCategoryFirstPages.values().stream().findFirst().orElse(0);
         }
         Integer idx = bowCategoryFirstPages.get(normalizeSectionKey(type));
         if (idx == null) {
             Integer bowIdx = bowCategoryFirstPages.get(MaterialTypes.BOW);
-            return bowIdx != null ? bowIdx : 1;
+            if (bowIdx != null) return bowIdx;
+            return bowCategoryFirstPages.values().stream().findFirst().orElse(0);
         }
         return idx;
     }
@@ -460,7 +472,11 @@ public class MaterialSectionManager {
         if (relIndex == null) return;
         int firstPageNum = guiBook.book.getFirstPageNumber(section, guiBook.advancementCache);
         if (firstPageNum >= 0) {
-            guiBook.openPage(firstPageNum + relIndex);
+            int offset = relIndex;
+            if (section.pages != null && !section.pages.isEmpty()) {
+                offset = Math.min(offset, section.pages.size() - 1);
+            }
+            guiBook.openPage(firstPageNum + Math.max(0, offset));
             guiBook.updateScreen();
         }
     }

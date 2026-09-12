@@ -47,6 +47,10 @@ public class SortTest {
                     }
             );
             loader.setActiveModContainer(container);
+
+            if (!net.minecraft.init.Bootstrap.isRegistered()) {
+                net.minecraft.init.Bootstrap.register();
+            }
         } catch (Throwable ignored) {}
     }
 
@@ -476,6 +480,193 @@ public class SortTest {
         assertTrue(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(platesOnly));
         assertTrue(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(trimOnly));
         assertFalse(com.shiver.tinkers_sort.book.ArmorySectionManager.isValidArmorMaterial(noArmor));
+    }
+
+    @Test
+    public void testInitLoadsDefaultsWhenRememberLastSortIsFalse() {
+        boolean origRemember = com.shiver.tinkers_sort.config.ModConfig.rememberLastSort;
+        String origToolMode = com.shiver.tinkers_sort.config.ModConfig.defaultSortMode;
+        boolean origToolAsc = com.shiver.tinkers_sort.config.ModConfig.defaultAscending;
+        String origBowMode = com.shiver.tinkers_sort.config.ModConfig.defaultBowSortMode;
+        boolean origBowAsc = com.shiver.tinkers_sort.config.ModConfig.defaultBowAscending;
+        String origArmorMode = com.shiver.tinkers_sort.config.ModConfig.defaultArmorSortMode;
+        boolean origArmorAsc = com.shiver.tinkers_sort.config.ModConfig.defaultArmorAscending;
+
+        try {
+            com.shiver.tinkers_sort.config.ModConfig.rememberLastSort = false;
+            com.shiver.tinkers_sort.config.ModConfig.defaultSortMode = "NAME";
+            com.shiver.tinkers_sort.config.ModConfig.defaultAscending = false;
+            com.shiver.tinkers_sort.config.ModConfig.defaultBowSortMode = "DRAW_SPEED";
+            com.shiver.tinkers_sort.config.ModConfig.defaultBowAscending = false;
+            com.shiver.tinkers_sort.config.ModConfig.defaultArmorSortMode = "ARMOR_DEFENSE";
+            com.shiver.tinkers_sort.config.ModConfig.defaultArmorAscending = false;
+
+            slimeknights.mantle.client.book.data.BookData book = new slimeknights.mantle.client.book.data.BookData();
+            slimeknights.mantle.client.book.data.SectionData toolSec = new slimeknights.mantle.client.book.data.SectionData();
+            toolSec.name = "materials";
+            book.sections.add(toolSec);
+
+            slimeknights.mantle.client.book.data.SectionData bowSec = new slimeknights.mantle.client.book.data.SectionData();
+            bowSec.name = "bowmaterials";
+            book.sections.add(bowSec);
+
+            slimeknights.mantle.client.book.data.SectionData armorSec = new slimeknights.mantle.client.book.data.SectionData();
+            armorSec.name = "armormaterials";
+            book.sections.add(armorSec);
+
+            MaterialSectionManager.init(book);
+            com.shiver.tinkers_sort.book.ArmorySectionManager.init(book);
+
+            assertEquals(SortMode.NAME, MaterialSectionManager.getCurrentMode("materials"));
+            assertEquals(SortOrder.DESCENDING, MaterialSectionManager.getCurrentOrder("materials"));
+            assertEquals(SortMode.DRAW_SPEED, MaterialSectionManager.getCurrentMode("bowmaterials"));
+            assertEquals(SortOrder.DESCENDING, MaterialSectionManager.getCurrentOrder("bowmaterials"));
+            assertEquals(SortMode.ARMOR_DEFENSE, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentMode());
+            assertEquals(SortOrder.DESCENDING, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentOrder());
+
+            // Also test fallback for invalid or inapplicable modes
+            com.shiver.tinkers_sort.config.ModConfig.defaultSortMode = "NON_EXISTENT_MODE";
+            com.shiver.tinkers_sort.config.ModConfig.defaultArmorSortMode = "DRAW_SPEED"; // DRAW_SPEED is not applicable to armor
+            MaterialSectionManager.init(book);
+            com.shiver.tinkers_sort.book.ArmorySectionManager.init(book);
+
+            assertEquals(SortMode.DEFAULT, MaterialSectionManager.getCurrentMode("materials"));
+            assertEquals(SortMode.DEFAULT, com.shiver.tinkers_sort.book.ArmorySectionManager.getCurrentMode());
+        } finally {
+            com.shiver.tinkers_sort.config.ModConfig.rememberLastSort = origRemember;
+            com.shiver.tinkers_sort.config.ModConfig.defaultSortMode = origToolMode;
+            com.shiver.tinkers_sort.config.ModConfig.defaultAscending = origToolAsc;
+            com.shiver.tinkers_sort.config.ModConfig.defaultBowSortMode = origBowMode;
+            com.shiver.tinkers_sort.config.ModConfig.defaultBowAscending = origBowAsc;
+            com.shiver.tinkers_sort.config.ModConfig.defaultArmorSortMode = origArmorMode;
+            com.shiver.tinkers_sort.config.ModConfig.defaultArmorAscending = origArmorAsc;
+        }
+    }
+
+    @Test
+    public void testPaginationLoopRetryOnPageOverflow() {
+        class MockPage {
+            int capacity = 20;
+            java.util.List<String> items = new java.util.ArrayList<>();
+            boolean add(String item) {
+                if (items.size() >= capacity) return false;
+                items.add(item);
+                return true;
+            }
+        }
+
+        java.util.List<MockPage> pages = java.util.Arrays.asList(new MockPage(), new MockPage(), new MockPage());
+        java.util.Iterator<MockPage> iter = pages.iterator();
+        MockPage current = iter.next();
+
+        java.util.List<String> allItems = new java.util.ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            allItems.add("item_" + i);
+        }
+
+        for (String item : allItems) {
+            while (!current.add(item)) {
+                if (!iter.hasNext()) break;
+                current = iter.next();
+            }
+        }
+
+        int totalCount = pages.stream().mapToInt(p -> p.items.size()).sum();
+        assertEquals(50, totalCount, "All 50 items should be added across pages without dropping items during page transition");
+        assertEquals(20, pages.get(0).items.size());
+        assertEquals(20, pages.get(1).items.size());
+        assertEquals(10, pages.get(2).items.size());
+    }
+
+    @Test
+    public void testMixedSpreadCurrentSectionResolution() throws Exception {
+        slimeknights.mantle.client.book.data.BookData book = new slimeknights.mantle.client.book.data.BookData();
+        slimeknights.mantle.client.book.data.SectionData toolSec = new slimeknights.mantle.client.book.data.SectionData();
+        toolSec.name = "materials";
+        book.sections.add(toolSec);
+
+        slimeknights.mantle.client.book.data.SectionData bowSec = new slimeknights.mantle.client.book.data.SectionData();
+        bowSec.name = "bowmaterials";
+        book.sections.add(bowSec);
+
+        // Create a spread where left page is materials and right page is bowmaterials
+        // Page 0 (cover/first page in toolSec)
+        slimeknights.mantle.client.book.data.PageData page0 = new slimeknights.mantle.client.book.data.PageData();
+        page0.parent = toolSec;
+        toolSec.pages.add(page0);
+
+        // Page 1 (left page on spread 1)
+        slimeknights.mantle.client.book.data.PageData leftPage = new slimeknights.mantle.client.book.data.PageData();
+        leftPage.parent = toolSec;
+        toolSec.pages.add(leftPage);
+
+        // Page 2 (right page on spread 1)
+        slimeknights.mantle.client.book.data.PageData rightPage = new slimeknights.mantle.client.book.data.PageData();
+        rightPage.parent = bowSec;
+        bowSec.pages.add(rightPage);
+
+        java.lang.reflect.Field uf = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        uf.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) uf.get(null);
+        slimeknights.mantle.client.gui.book.GuiBook guiBook =
+                (slimeknights.mantle.client.gui.book.GuiBook) unsafe.allocateInstance(slimeknights.mantle.client.gui.book.GuiBook.class);
+
+        java.lang.reflect.Field bf = slimeknights.mantle.client.gui.book.GuiBook.class.getDeclaredField("book");
+        bf.setAccessible(true);
+        bf.set(guiBook, book);
+
+        java.lang.reflect.Field pf = slimeknights.mantle.client.gui.book.GuiBook.class.getDeclaredField("page");
+        pf.setAccessible(true);
+        pf.setInt(guiBook, 1);
+
+        slimeknights.mantle.client.book.data.SectionData resolvedBow =
+                com.shiver.tinkers_sort.client.gui.BookGuiHandler.getCurrentSection(guiBook, "bowmaterials");
+        assertNotNull(resolvedBow);
+        assertEquals("bowmaterials", resolvedBow.name);
+
+        slimeknights.mantle.client.book.data.SectionData resolvedTools =
+                com.shiver.tinkers_sort.client.gui.BookGuiHandler.getCurrentSection(guiBook, "materials");
+        assertNotNull(resolvedTools);
+        assertEquals("materials", resolvedTools.name);
+    }
+
+    @Test
+    public void testBowMaterialsEmptySearchResultGeneratesCategoryOverviews() {
+        slimeknights.mantle.client.book.data.BookData book = new slimeknights.mantle.client.book.data.BookData();
+        slimeknights.mantle.client.book.data.SectionData toolSec = new slimeknights.mantle.client.book.data.SectionData();
+        toolSec.name = "materials";
+        book.sections.add(toolSec);
+
+        slimeknights.mantle.client.book.data.SectionData bowSec = new slimeknights.mantle.client.book.data.SectionData();
+        bowSec.name = "bowmaterials";
+        book.sections.add(bowSec);
+
+        MaterialSectionManager.init(book);
+
+        // Filter with nonexistent query
+        MaterialSectionManager.applySort(book, "bowmaterials", SortMode.DEFAULT, SortOrder.ASCENDING, "non_existent_filter_xyz");
+
+        // Category overviews must still exist and be indexed >= 1
+        Integer bowIdx = MaterialSectionManager.getBowCategoryPageIndex("bow");
+        assertNotNull(bowIdx);
+        assertEquals(Integer.valueOf(1), bowIdx);
+
+        Integer stringIdx = MaterialSectionManager.getBowCategoryPageIndex("bowstring");
+        assertNotNull(stringIdx);
+        assertEquals(Integer.valueOf(2), stringIdx);
+
+        Integer shaftIdx = MaterialSectionManager.getBowCategoryPageIndex("shaft");
+        assertNotNull(shaftIdx);
+        assertEquals(Integer.valueOf(3), shaftIdx);
+
+        Integer fletchingIdx = MaterialSectionManager.getBowCategoryPageIndex("fletching");
+        assertNotNull(fletchingIdx);
+        assertEquals(Integer.valueOf(4), fletchingIdx);
+
+        // Now clear query
+        MaterialSectionManager.applySort(book, "bowmaterials", SortMode.DEFAULT, SortOrder.ASCENDING, "");
+        assertEquals("", MaterialSectionManager.getCurrentQuery("bowmaterials"));
+        assertEquals("", MaterialSectionManager.getCurrentQuery("bow"));
     }
 }
 

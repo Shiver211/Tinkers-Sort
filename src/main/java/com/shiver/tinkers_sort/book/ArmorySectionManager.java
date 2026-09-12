@@ -89,17 +89,17 @@ public class ArmorySectionManager {
         }
 
         // Load configured defaults
-        if (ModConfig.rememberLastSort) {
-            try {
-                SortMode m = SortMode.valueOf(ModConfig.defaultArmorSortMode);
-                if (m.isApplicable("armormaterials")) {
-                    currentMode = m;
-                }
-            } catch (Exception ignored) {
+        try {
+            SortMode m = SortMode.valueOf(ModConfig.defaultArmorSortMode);
+            if (m.isApplicable("armormaterials")) {
+                currentMode = m;
+            } else {
                 currentMode = SortMode.DEFAULT;
             }
-            currentOrder = ModConfig.defaultArmorAscending ? SortOrder.ASCENDING : SortOrder.DESCENDING;
+        } catch (Exception ignored) {
+            currentMode = SortMode.DEFAULT;
         }
+        currentOrder = ModConfig.defaultArmorAscending ? SortOrder.ASCENDING : SortOrder.DESCENDING;
 
         initialized = true;
 
@@ -165,7 +165,7 @@ public class ArmorySectionManager {
         SectionData data = MaterialSectionManager.findSection(book, "materials");
         if (data == null) return;
 
-        if (rawArmorMaterials.isEmpty()) {
+        if (!initialized) {
             init(book);
         }
 

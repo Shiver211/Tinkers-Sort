@@ -172,6 +172,10 @@ public class GuiSortToolbar {
         }
     }
 
+    public String getCurrentSection() {
+        return currentSection;
+    }
+
     public void setCurrentSection(String sectionName) {
         if (sectionName == null) sectionName = "materials";
         String normalized = sectionName.toLowerCase();
@@ -563,9 +567,12 @@ public class GuiSortToolbar {
                     int offset = 0;
                     if (MaterialSectionManager.isBowCategory(sectionName)) {
                         Integer subIndex = MaterialSectionManager.getBowCategoryPageIndex(subcategory);
-                        offset = (subIndex != null) ? subIndex : 1;
+                        offset = (subIndex != null) ? subIndex : 0;
                     }
-                    guiBook.openPage(firstPageNum + offset);
+                    if (section.pages != null && !section.pages.isEmpty()) {
+                        offset = Math.min(offset, section.pages.size() - 1);
+                    }
+                    guiBook.openPage(firstPageNum + Math.max(0, offset));
                     guiBook.updateScreen();
                     return;
                 }

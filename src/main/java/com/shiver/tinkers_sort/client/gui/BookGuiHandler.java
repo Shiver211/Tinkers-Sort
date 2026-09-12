@@ -68,7 +68,7 @@ public class BookGuiHandler {
     }
 
     private void updateToolbarVisibility(GuiBook guiBook) {
-        SectionData section = getCurrentSection(guiBook);
+        SectionData section = getCurrentSection(guiBook, toolbar.getCurrentSection());
         if (isSortableSection(section)) {
             toolbar.setVisible(true);
             toolbar.setCurrentSection(section.name);
@@ -78,6 +78,10 @@ public class BookGuiHandler {
     }
 
     public static SectionData getCurrentSection(GuiBook guiBook) {
+        return getCurrentSection(guiBook, null);
+    }
+
+    public static SectionData getCurrentSection(GuiBook guiBook, String preferredSection) {
         if (guiBook == null || guiBook.book == null) return null;
         MaterialSectionManager.ensureSectionsInitialized(guiBook.book);
         int page = guiBook.getPage_();
@@ -94,19 +98,41 @@ public class BookGuiHandler {
         int rightPageNum = (page - 1) * 2 + 2;
         PageData rightPage = guiBook.book.findPage(rightPageNum, guiBook.advancementCache);
 
-        // Prioritize returning a sortable section if either page on the spread belongs to one
-        if (leftPage != null && isSortableSection(leftPage.parent)) {
-            return leftPage.parent;
-        }
-        if (rightPage != null && isSortableSection(rightPage.parent)) {
-            return rightPage.parent;
+        SectionData leftSec = leftPage != null ? leftPage.parent : null;
+        SectionData rightSec = rightPage != null ? rightPage.parent : null;
+
+        boolean leftSortable = isSortableSection(leftSec);
+        boolean rightSortable = isSortableSection(rightSec);
+
+        // When both pages on the spread are sortable sections (mixed spread)
+        if (leftSortable && rightSortable) {
+            if (preferredSection != null) {
+                if (rightSec != null && preferredSection.equalsIgnoreCase(rightSec.name)) {
+                    return rightSec;
+                }
+                if (leftSec != null && preferredSection.equalsIgnoreCase(leftSec.name)) {
+                    return leftSec;
+                }
+            }
+            // If no preference, check if right page is the start of its section
+            if (rightSec != null && guiBook.book.getFirstPageNumber(rightSec, guiBook.advancementCache) == rightPageNum + 1) {
+                return rightSec;
+            }
+            return leftSec != null ? leftSec : rightSec;
         }
 
-        if (leftPage != null && leftPage.parent != null) {
-            return leftPage.parent;
+        if (leftSortable) {
+            return leftSec;
         }
-        if (rightPage != null && rightPage.parent != null) {
-            return rightPage.parent;
+        if (rightSortable) {
+            return rightSec;
+        }
+
+        if (leftSec != null) {
+            return leftSec;
+        }
+        if (rightSec != null) {
+            return rightSec;
         }
 
         return null;
