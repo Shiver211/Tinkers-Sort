@@ -1,6 +1,5 @@
 package com.shiver.tinkers_sort.client.gui;
 
-import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -116,7 +115,7 @@ public class BookGuiHandler {
     public static boolean isSortableSection(SectionData section) {
         if (section == null || section.name == null) return false;
         String name = section.name.toLowerCase();
-        return name.equals("materials") || name.equals("bowmaterials") || name.equals("armormaterials");
+        return name.equals("materials") || name.equals("bowmaterials");
     }
 }
 

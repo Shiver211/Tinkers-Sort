@@ -35,10 +35,6 @@ public class MaterialSectionManager {
     public static final List<String> BOW_MATERIAL_TYPES = ImmutableList.of(
             MaterialTypes.BOW, MaterialTypes.BOWSTRING, MaterialTypes.SHAFT, MaterialTypes.FLETCHING
     );
-    public static final String SUB_BOW = MaterialTypes.BOW;
-    public static final String SUB_BOWSTRING = MaterialTypes.BOWSTRING;
-    public static final String SUB_SHAFT = MaterialTypes.SHAFT;
-    public static final String SUB_FLETCHING = MaterialTypes.FLETCHING;
 
     private static List<Material> rawToolMaterials = new ArrayList<>();
     private static Map<String, Integer> defaultToolIndices = new HashMap<>();
@@ -218,18 +214,6 @@ public class MaterialSectionManager {
         state.order = ascending ? SortOrder.ASCENDING : SortOrder.DESCENDING;
     }
 
-    public static SortMode getCurrentMode() {
-        return getCurrentMode("materials");
-    }
-
-    public static SortOrder getCurrentOrder() {
-        return getCurrentOrder("materials");
-    }
-
-    public static String getCurrentQuery() {
-        return getCurrentQuery("materials");
-    }
-
     public static SortMode getCurrentMode(String sectionName) {
         return getSectionState(sectionName).mode;
     }
@@ -400,7 +384,7 @@ public class MaterialSectionManager {
 
             List<Material> filtered = list.stream()
                     .filter(m -> MaterialFilter.matches(m, q))
-                    .sorted(new MaterialComparator(modeToUse, orderToUse, defaultBowIndices.get(type), type))
+                    .sorted(new MaterialComparator(modeToUse, orderToUse, defaultBowIndices.get(type)))
                     .collect(Collectors.toList());
 
             if (filtered.isEmpty()) continue;
@@ -467,10 +451,6 @@ public class MaterialSectionManager {
         return idx;
     }
 
-    public static Integer getBowMaterialIconPageIndex(String type) {
-        return getBowCategoryPageIndex(type);
-    }
-
     public static void navigateToBowCategory(GuiBook guiBook, String type) {
         if (guiBook == null || guiBook.book == null) return;
         ensureSectionsInitialized(guiBook.book);
@@ -483,10 +463,6 @@ public class MaterialSectionManager {
             guiBook.openPage(firstPageNum + relIndex);
             guiBook.updateScreen();
         }
-    }
-
-    public static String detectCurrentBowCategory(GuiBook guiBook) {
-        return detectCurrentBowCategory(guiBook, null);
     }
 
     public static String detectCurrentBowCategory(GuiBook guiBook, String preferredCategory) {

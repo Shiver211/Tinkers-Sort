@@ -22,22 +22,16 @@ public class MaterialComparator implements Comparator<Material> {
     private final SortMode mode;
     private final SortOrder order;
     private final Map<String, Integer> defaultIndices;
-    private final String targetMaterialType;
     private final Collator collator;
 
+    public MaterialComparator(SortMode mode, SortOrder order) {
+        this(mode, order, null);
+    }
+
     public MaterialComparator(SortMode mode, SortOrder order, Map<String, Integer> defaultIndices) {
-        this(mode, order, defaultIndices, null);
-    }
-
-    public MaterialComparator(SortMode mode, SortOrder order, String targetMaterialType) {
-        this(mode, order, null, targetMaterialType);
-    }
-
-    public MaterialComparator(SortMode mode, SortOrder order, Map<String, Integer> defaultIndices, String targetMaterialType) {
         this.mode = mode;
         this.order = order;
         this.defaultIndices = defaultIndices;
-        this.targetMaterialType = targetMaterialType;
 
         Locale currentLocale = Locale.CHINA;
         try {

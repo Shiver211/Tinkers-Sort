@@ -6,21 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum SortMode {
-    DEFAULT("tinkers_sort.sort.default", "tinkers_sort.sort.default.desc", false, false, TargetCategory.ALL),
-    NAME("tinkers_sort.sort.name", "tinkers_sort.sort.name.desc", false, false, TargetCategory.ALL),
-    HARVEST_LEVEL("tinkers_sort.sort.harvest_level", "tinkers_sort.sort.harvest_level.desc", true, false, TargetCategory.TOOL),
-    DURABILITY("tinkers_sort.sort.durability", "tinkers_sort.sort.durability.desc", true, true, TargetCategory.TOOL_AND_BOW),
-    MINING_SPEED("tinkers_sort.sort.mining_speed", "tinkers_sort.sort.mining_speed.desc", true, false, TargetCategory.TOOL),
-    ATTACK_DAMAGE("tinkers_sort.sort.attack_damage", "tinkers_sort.sort.attack_damage.desc", true, false, TargetCategory.TOOL),
-    HANDLE_MODIFIER("tinkers_sort.sort.handle_modifier", "tinkers_sort.sort.handle_modifier.desc", true, false, TargetCategory.TOOL),
-    DRAW_SPEED("tinkers_sort.sort.draw_speed", "tinkers_sort.sort.draw_speed.desc", false, true, TargetCategory.BOW),
-    RANGE("tinkers_sort.sort.range", "tinkers_sort.sort.range.desc", false, true, TargetCategory.BOW),
-    BONUS_DAMAGE("tinkers_sort.sort.bonus_damage", "tinkers_sort.sort.bonus_damage.desc", false, true, TargetCategory.BOW),
-    BOWSTRING_MODIFIER("tinkers_sort.sort.bowstring_modifier", "tinkers_sort.sort.bowstring_modifier.desc", false, true, TargetCategory.BOWSTRING),
-    BONUS_AMMO("tinkers_sort.sort.bonus_ammo", "tinkers_sort.sort.bonus_ammo.desc", false, true, TargetCategory.SHAFT),
-    SHAFT_MODIFIER("tinkers_sort.sort.shaft_modifier", "tinkers_sort.sort.shaft_modifier.desc", false, true, TargetCategory.SHAFT),
-    ACCURACY("tinkers_sort.sort.accuracy", "tinkers_sort.sort.accuracy.desc", false, true, TargetCategory.FLETCHING),
-    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", false, true, TargetCategory.FLETCHING);
+    DEFAULT("tinkers_sort.sort.default", "tinkers_sort.sort.default.desc", TargetCategory.ALL),
+    NAME("tinkers_sort.sort.name", "tinkers_sort.sort.name.desc", TargetCategory.ALL),
+    HARVEST_LEVEL("tinkers_sort.sort.harvest_level", "tinkers_sort.sort.harvest_level.desc", TargetCategory.TOOL),
+    DURABILITY("tinkers_sort.sort.durability", "tinkers_sort.sort.durability.desc", TargetCategory.TOOL_AND_BOW),
+    MINING_SPEED("tinkers_sort.sort.mining_speed", "tinkers_sort.sort.mining_speed.desc", TargetCategory.TOOL),
+    ATTACK_DAMAGE("tinkers_sort.sort.attack_damage", "tinkers_sort.sort.attack_damage.desc", TargetCategory.TOOL),
+    HANDLE_MODIFIER("tinkers_sort.sort.handle_modifier", "tinkers_sort.sort.handle_modifier.desc", TargetCategory.TOOL),
+    DRAW_SPEED("tinkers_sort.sort.draw_speed", "tinkers_sort.sort.draw_speed.desc", TargetCategory.BOW),
+    RANGE("tinkers_sort.sort.range", "tinkers_sort.sort.range.desc", TargetCategory.BOW),
+    BONUS_DAMAGE("tinkers_sort.sort.bonus_damage", "tinkers_sort.sort.bonus_damage.desc", TargetCategory.BOW),
+    BOWSTRING_MODIFIER("tinkers_sort.sort.bowstring_modifier", "tinkers_sort.sort.bowstring_modifier.desc", TargetCategory.BOWSTRING),
+    BONUS_AMMO("tinkers_sort.sort.bonus_ammo", "tinkers_sort.sort.bonus_ammo.desc", TargetCategory.SHAFT),
+    SHAFT_MODIFIER("tinkers_sort.sort.shaft_modifier", "tinkers_sort.sort.shaft_modifier.desc", TargetCategory.SHAFT),
+    ACCURACY("tinkers_sort.sort.accuracy", "tinkers_sort.sort.accuracy.desc", TargetCategory.FLETCHING),
+    FLETCHING_MODIFIER("tinkers_sort.sort.fletching_modifier", "tinkers_sort.sort.fletching_modifier.desc", TargetCategory.FLETCHING);
 
     public enum TargetCategory {
         ALL,
@@ -34,15 +34,11 @@ public enum SortMode {
 
     private final String unlocalizedName;
     private final String unlocalizedDesc;
-    private final boolean toolSpecific;
-    private final boolean bowSpecific;
     private final TargetCategory category;
 
-    SortMode(String unlocalizedName, String unlocalizedDesc, boolean toolSpecific, boolean bowSpecific, TargetCategory category) {
+    SortMode(String unlocalizedName, String unlocalizedDesc, TargetCategory category) {
         this.unlocalizedName = unlocalizedName;
         this.unlocalizedDesc = unlocalizedDesc;
-        this.toolSpecific = toolSpecific;
-        this.bowSpecific = bowSpecific;
         this.category = category;
     }
 
@@ -76,7 +72,7 @@ public enum SortMode {
         } else if ("fletching".equals(s)) {
             return category == TargetCategory.ALL || category == TargetCategory.FLETCHING;
         } else if ("bowmaterials".equals(s)) {
-            return !toolSpecific || this == DURABILITY;
+            return category != TargetCategory.TOOL;
         }
         return true;
     }

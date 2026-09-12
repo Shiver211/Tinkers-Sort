@@ -494,14 +494,6 @@ public class GuiSortToolbar {
         return false;
     }
 
-    public static void refreshBook(GuiBook guiBook) {
-        refreshBook(guiBook, null, null);
-    }
-
-    public static void refreshBook(GuiBook guiBook, String sectionName) {
-        refreshBook(guiBook, sectionName, null);
-    }
-
     public static void refreshBook(GuiBook guiBook, String sectionName, String subcategory) {
         if (guiBook == null || guiBook.book == null) return;
 
@@ -514,7 +506,7 @@ public class GuiSortToolbar {
                 if (firstPageNum >= 0) {
                     int offset = 0;
                     if (MaterialSectionManager.isBowCategory(sectionName)) {
-                        Integer subIndex = MaterialSectionManager.getBowMaterialIconPageIndex(subcategory);
+                        Integer subIndex = MaterialSectionManager.getBowCategoryPageIndex(subcategory);
                         offset = (subIndex != null) ? subIndex : 1;
                     }
                     guiBook.openPage(firstPageNum + offset);

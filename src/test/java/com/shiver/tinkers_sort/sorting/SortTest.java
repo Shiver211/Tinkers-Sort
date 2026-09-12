@@ -242,10 +242,8 @@ public class SortTest {
     public void testBowCategoryPageIndices() {
         assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex("all"));
         assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex("bowmaterials"));
-        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex("all"));
-        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex("bowmaterials"));
-        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex("bow"));
-        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowMaterialIconPageIndex(null));
+        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex("bow"));
+        assertEquals(Integer.valueOf(1), MaterialSectionManager.getBowCategoryPageIndex(null));
     }
 
     @Test
