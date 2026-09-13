@@ -1,0 +1,65 @@
+# Tinkers' Sort - Russian Localization
+tinkers_sort.order.ascending=По возрастанию
+tinkers_sort.order.descending=По убыванию
+
+tinkers_sort.gui.search=Поиск...
+tinkers_sort.gui.clear_tooltip=Очистить поисковый запрос
+tinkers_sort.gui.order_tooltip=Нажмите, чтобы переключить По возрастанию / По убыванию
+tinkers_sort.gui.reset_tooltip=Сбросить сортировку и очистить поиск
+tinkers_sort.gui.search_tooltip.name=• Прямой ввод: поиск по названию материала
+tinkers_sort.gui.search_tooltip.trait=• #trait: поиск по свойству материала
+
+tinkers_sort.sort.default=По умолчанию
+tinkers_sort.sort.default.desc=Порядок регистрации в оригинальном моде
+tinkers_sort.sort.name=Название
+tinkers_sort.sort.name.desc=Сортировка по алфавиту по локализованному названию
+tinkers_sort.sort.harvest_level=Уровень добычи
+tinkers_sort.sort.harvest_level.desc=Сортировка по уровню добычи головки
+tinkers_sort.sort.durability=Прочность
+tinkers_sort.sort.durability.desc=Сортировка по прочности головки / основания
+tinkers_sort.sort.mining_speed=Скорость добычи
+tinkers_sort.sort.mining_speed.desc=Сортировка по скорости добычи головки
+tinkers_sort.sort.attack_damage=Урон атаки
+tinkers_sort.sort.attack_damage.desc=Сортировка по урону атаки головки
+tinkers_sort.sort.handle_modifier=Модификатор рукояти
+tinkers_sort.sort.handle_modifier.desc=Сортировка по модификатору прочности рукояти
+tinkers_sort.sort.draw_speed=Скорость натяжения
+tinkers_sort.sort.draw_speed.desc=Сортировка по скорости натяжения лука
+tinkers_sort.sort.range=Дальность
+tinkers_sort.sort.range.desc=Сортировка по множителю дальности лука
+tinkers_sort.sort.bonus_damage=Урон стрелы
+tinkers_sort.sort.bonus_damage.desc=Сортировка по бонусному урону стрелы
+tinkers_sort.sort.bowstring_modifier=Модификатор тетивы
+tinkers_sort.sort.bowstring_modifier.desc=Сортировка по модификатору скорости натяжения тетивы
+tinkers_sort.sort.bonus_ammo=Бонусные стрелы
+tinkers_sort.sort.bonus_ammo.desc=Сортировка по бонусным стрелам древка стрелы
+tinkers_sort.sort.shaft_modifier=Модификатор древка
+tinkers_sort.sort.shaft_modifier.desc=Сортировка по модификатору прочности древка стрелы
+tinkers_sort.sort.accuracy=Точность
+tinkers_sort.sort.accuracy.desc=Сортировка по точности оперения
+tinkers_sort.sort.fletching_modifier=Модификатор оперения
+tinkers_sort.sort.fletching_modifier.desc=Сортировка по модификатору прочности оперения
+
+tinkers_sort.category.bow=Лук
+tinkers_sort.category.bow.desc=Материалы плечей лука (Скорость натяжения, Дальность, Урон стрелы, Прочность)
+tinkers_sort.category.bowstring=Тетива
+tinkers_sort.category.bowstring.desc=Материалы тетивы (Модификатор тетивы)
+tinkers_sort.category.shaft=Древко
+tinkers_sort.category.shaft.desc=Материалы древка стрелы (Бонусные стрелы, Модификатор древка)
+tinkers_sort.category.fletching=Оперение
+tinkers_sort.category.fletching.desc=Материалы оперения (Точность, Модификатор оперения)
+
+# Construct's Armory Sort Modes
+tinkers_sort.sort.armor_defense=Защита
+tinkers_sort.sort.armor_defense.desc=Сортировка по защите брони ядра
+tinkers_sort.sort.armor_toughness=Твёрдость
+tinkers_sort.sort.armor_toughness.desc=Сортировка по твёрдости брони пластин
+tinkers_sort.sort.armor_durability=Прочность ядра
+tinkers_sort.sort.armor_durability.desc=Сортировка по прочности брони ядра
+tinkers_sort.sort.plates_durability=Прочность пластин
+tinkers_sort.sort.plates_durability.desc=Сортировка по дополнительной прочности пластин
+tinkers_sort.sort.plates_modifier=Модификатор пластин
+tinkers_sort.sort.plates_modifier.desc=Сортировка по модификатору прочности пластин
+tinkers_sort.sort.trim_extra_durability=Прочность отделки
+tinkers_sort.sort.trim_extra_durability.desc=Сортировка по дополнительной прочности отделки
+
