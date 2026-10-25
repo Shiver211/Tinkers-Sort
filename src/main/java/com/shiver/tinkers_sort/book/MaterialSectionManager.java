@@ -43,6 +43,20 @@ public class MaterialSectionManager {
     private static Map<String, Map<String, Integer>> defaultBowIndices = new HashMap<>();
     private static final Map<String, Integer> bowCategoryFirstPages = new HashMap<>();
 
+    private static boolean hideLocked = ModConfig.defaultHideLocked;
+
+    public static boolean isHideLocked() {
+        return hideLocked;
+    }
+
+    public static void setHideLocked(boolean hide) {
+        hideLocked = hide;
+        if (ModConfig.rememberLastSort) {
+            ModConfig.defaultHideLocked = hide;
+            ModConfig.save();
+        }
+    }
+
     public static class SectionState {
         public SortMode mode;
         public SortOrder order;
@@ -189,9 +203,10 @@ public class MaterialSectionManager {
         loadConfiguredState(MaterialTypes.SHAFT, ModConfig.defaultShaftSortMode, ModConfig.defaultShaftAscending);
         loadConfiguredState(MaterialTypes.FLETCHING, ModConfig.defaultFletchingSortMode, ModConfig.defaultFletchingAscending);
 
+        hideLocked = ModConfig.defaultHideLocked;
         initialized = true;
 
-        if (toolState.mode != SortMode.DEFAULT || toolState.order != SortOrder.ASCENDING) {
+        if (toolState.mode != SortMode.DEFAULT || toolState.order != SortOrder.ASCENDING || hideLocked) {
             rebuildToolMaterials(book);
         }
         rebuildBowMaterials(book);
@@ -278,7 +293,7 @@ public class MaterialSectionManager {
         }
     }
 
-    private static void rebuildToolMaterials(BookData book) {
+    public static void rebuildToolMaterials(BookData book) {
         if (book == null) return;
         SectionData data = findSection(book, "materials");
         if (data == null) return;
@@ -291,7 +306,7 @@ public class MaterialSectionManager {
 
         SectionState state = getSectionState("materials");
         List<Material> filtered = rawToolMaterials.stream()
-                .filter(m -> MaterialFilter.matches(m, state.query))
+                .filter(m -> MaterialFilter.matches(m, state.query, hideLocked))
                 .sorted(new MaterialComparator(state.mode, state.order, defaultToolIndices))
                 .collect(Collectors.toList());
 
@@ -337,7 +352,7 @@ public class MaterialSectionManager {
         }
     }
 
-    private static void rebuildBowMaterials(BookData book) {
+    public static void rebuildBowMaterials(BookData book) {
         if (book == null) return;
         SectionData data = findSection(book, "bowmaterials");
         if (data == null) return;
@@ -380,7 +395,7 @@ public class MaterialSectionManager {
             String q = typeState.query != null ? typeState.query : "";
 
             List<Material> filtered = list.stream()
-                    .filter(m -> MaterialFilter.matches(m, q))
+                    .filter(m -> MaterialFilter.matches(m, q, hideLocked))
                     .sorted(new MaterialComparator(modeToUse, orderToUse, defaultBowIndices.get(type)))
                     .collect(Collectors.toList());
 

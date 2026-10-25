@@ -6,6 +6,12 @@ tinkers_sort.gui.search=Search...
 tinkers_sort.gui.clear_tooltip=Clear search query
 tinkers_sort.gui.order_tooltip=Click to toggle Ascending / Descending
 tinkers_sort.gui.reset_tooltip=Reset sort and clear search
+tinkers_sort.gui.hide_locked.title=Hide Locked Materials
+tinkers_sort.gui.hide_locked.desc=Hide materials not yet unlocked via Game Stages
+tinkers_sort.gui.hide_locked.on=§aCurrent: Enabled (Hiding locked)
+tinkers_sort.gui.hide_locked.off=§7Current: Disabled (Showing all)
+tinkers_sort.gui.hide_locked.click=§eClick to toggle
+tinkers_sort.gui.hide_locked.no_mod=§cGame Stages mod not detected
 tinkers_sort.gui.search_tooltip.name=• Direct input: Search by material name
 tinkers_sort.gui.search_tooltip.trait=• #trait: Search by material trait
 

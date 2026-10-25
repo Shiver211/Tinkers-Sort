@@ -1,5 +1,7 @@
 package com.shiver.tinkers_sort.sorting;
 
+import com.shiver.tinkers_sort.book.MaterialSectionManager;
+import com.shiver.tinkers_sort.integration.GameStagesIntegration;
 import com.shiver.tinkers_sort.integration.JechHelper;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.traits.ITrait;
@@ -9,6 +11,18 @@ import java.util.Collection;
 public class MaterialFilter {
 
     public static boolean matches(Material material, String query) {
+        return matches(material, query, MaterialSectionManager.isHideLocked());
+    }
+
+    public static boolean matches(Material material, String query, boolean hideLocked) {
+        if (material == null) {
+            return false;
+        }
+
+        if (hideLocked && !GameStagesIntegration.isMaterialUnlocked(material)) {
+            return false;
+        }
+
         if (query == null || query.trim().isEmpty()) {
             return true;
         }

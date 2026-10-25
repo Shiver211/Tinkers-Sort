@@ -103,7 +103,7 @@ public class ArmorySectionManager {
 
         initialized = true;
 
-        if (currentMode != SortMode.DEFAULT || currentOrder != SortOrder.ASCENDING) {
+        if (currentMode != SortMode.DEFAULT || currentOrder != SortOrder.ASCENDING || MaterialSectionManager.isHideLocked()) {
             rebuildArmorMaterials(book);
         }
     }
@@ -172,7 +172,7 @@ public class ArmorySectionManager {
         data.pages.clear();
 
         List<Material> filtered = rawArmorMaterials.stream()
-                .filter(m -> MaterialFilter.matches(m, currentQuery))
+                .filter(m -> MaterialFilter.matches(m, currentQuery, MaterialSectionManager.isHideLocked()))
                 .sorted(new MaterialComparator(currentMode, currentOrder, defaultArmorIndices))
                 .collect(Collectors.toList());
 

@@ -5,6 +5,12 @@ tinkers_sort.gui.search=搜索...
 tinkers_sort.gui.clear_tooltip=清空搜索内容
 tinkers_sort.gui.order_tooltip=点击切换 升序 / 降序
 tinkers_sort.gui.reset_tooltip=重置为默认排序并清空搜索
+tinkers_sort.gui.hide_locked.title=隐藏未解锁材料
+tinkers_sort.gui.hide_locked.desc=根据 Game Stage 隐藏未解锁的材料
+tinkers_sort.gui.hide_locked.on=§a当前状态：已启用 (隐藏未解锁材料)
+tinkers_sort.gui.hide_locked.off=§7当前状态：已禁用 (显示所有材料)
+tinkers_sort.gui.hide_locked.click=§e点击切换
+tinkers_sort.gui.hide_locked.no_mod=§c未检测到 Game Stages 模组
 tinkers_sort.gui.search_tooltip.name=• 直接输入: 搜索材料名称
 tinkers_sort.gui.search_tooltip.trait=• #前缀: 搜索材料特性
 

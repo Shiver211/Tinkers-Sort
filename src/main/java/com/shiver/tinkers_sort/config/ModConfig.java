@@ -70,6 +70,14 @@ public class ModConfig {
     @Config.Name("ToolbarYOffset")
     public static int toolbarYOffset = -22;
 
+    @Config.Comment("Default state for hiding locked materials: true to hide locked materials, false to show all")
+    @Config.Name("DefaultHideLocked")
+    public static boolean defaultHideLocked = false;
+
+    @Config.Comment("Whether to enable the Game Stages lock/unlock filter button")
+    @Config.Name("EnableStageFilter")
+    public static boolean enableStageFilter = true;
+
     public static void save() {
         ConfigManager.sync(Tags.MOD_ID, Config.Type.INSTANCE);
     }

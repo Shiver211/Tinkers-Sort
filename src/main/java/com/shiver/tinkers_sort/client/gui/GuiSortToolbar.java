@@ -1,9 +1,11 @@
 package com.shiver.tinkers_sort.client.gui;
 
+import com.shiver.tinkers_sort.book.ArmorySectionManager;
 import com.shiver.tinkers_sort.book.MaterialSectionManager;
 import com.shiver.tinkers_sort.config.ModConfig;
 import com.shiver.tinkers_sort.integration.ArmoryIntegration;
 import com.shiver.tinkers_sort.integration.ArmoryToolbarHelper;
+import com.shiver.tinkers_sort.integration.GameStagesIntegration;
 import com.shiver.tinkers_sort.sorting.SortMode;
 import com.shiver.tinkers_sort.sorting.SortOrder;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -48,28 +50,65 @@ public class GuiSortToolbar {
     // Relative button offsets
     private final int searchX = 4;
     private final int searchY = 2;
-    private final int searchW = 100;
+    private int searchW = 100;
     private final int searchH = 16;
 
-    private final int clearX = 106;
+    private int clearX = 106;
     private final int clearY = 2;
     private final int clearW = 14;
     private final int clearH = 16;
 
-    private final int modeX = 124;
+    private int modeX = 124;
     private final int modeY = 2;
-    private final int modeW = 126;
+    private int modeW = 126;
     private final int modeH = 16;
 
-    private final int orderX = 254;
+    private int orderX = 254;
     private final int orderY = 2;
-    private final int orderW = 54;
+    private int orderW = 54;
     private final int orderH = 16;
 
-    private final int resetX = 312;
+    private int stageX = -1;
+    private final int stageY = 2;
+    private int stageW = 0;
+    private final int stageH = 16;
+
+    private int resetX = 312;
     private final int resetY = 2;
     private final int resetW = 22;
     private final int resetH = 16;
+
+    public boolean isStageButtonVisible() {
+        return ModConfig.enableStageFilter && GameStagesIntegration.isAvailable();
+    }
+
+    private void updateLayout() {
+        if (isStageButtonVisible()) {
+            searchW = 88;
+            clearX = 94;
+            modeX = 112;
+            modeW = 118;
+            orderX = 234;
+            orderW = 52;
+            stageX = 290;
+            stageW = 22;
+            resetX = 314;
+        } else {
+            searchW = 100;
+            clearX = 106;
+            modeX = 124;
+            modeW = 126;
+            orderX = 254;
+            orderW = 54;
+            stageX = -1;
+            stageW = 0;
+            resetX = 312;
+        }
+        if (searchField != null) {
+            searchField.x = x + searchX + 2;
+            searchField.width = searchW - 4;
+        }
+    }
 
     private static class TabRect {
         String type;
@@ -133,6 +172,8 @@ public class GuiSortToolbar {
             this.y = 16;
         }
 
+        updateLayout();
+
         this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
 
         SectionData sec = BookGuiHandler.getCurrentSection(guiBook);
@@ -194,6 +235,8 @@ public class GuiSortToolbar {
         if (!visible) return;
 
         this.isArmory = ArmoryIntegration.isArmoryBook(guiBook != null ? guiBook.book : null);
+
+        updateLayout();
 
         FontRenderer fr = guiBook.mc.fontRenderer;
         GlStateManager.pushMatrix();
@@ -293,7 +336,19 @@ public class GuiSortToolbar {
         int orderTextW = fr.getStringWidth(orderText);
         fr.drawString(orderText, x + orderX + (orderW - orderTextW) / 2, y + orderY + 4, 0xFFE0E0E0);
 
-        // 5. Draw Reset Button
+        // 5. Draw Stage Lock / Hide Locked Button (only when Game Stages is present)
+        if (isStageButtonVisible()) {
+            boolean hideLocked = MaterialSectionManager.isHideLocked();
+            boolean hoverStage = isHovered(mouseX, mouseY, x + stageX, y + stageY, stageW, stageH);
+
+            int stageBorder = hoverStage ? (hideLocked ? 0xFFFFAA00 : 0xFF9E8A74) : (hideLocked ? 0xFFCC8800 : 0xFF4A443C);
+            int stageBg = hoverStage ? (hideLocked ? 0xDD4A3B22 : 0xDD3E3E3E) : (hideLocked ? 0xCC332611 : 0xBB2A2A2A);
+            drawBorderedRect(x + stageX, y + stageY, stageW, stageH, stageBorder, stageBg);
+
+            drawLockIcon(x + stageX + stageW / 2, y + stageY + stageH / 2, hideLocked, true, hoverStage);
+        }
+
+        // 6. Draw Reset Button
         boolean hoverReset = isHovered(mouseX, mouseY, x + resetX, y + resetY, resetW, resetH);
         int resetBorder = hoverReset ? 0xFF9E8A74 : 0xFF4A443C;
         int resetBg = hoverReset ? 0xDD3E3E3E : 0xBB2A2A2A;
@@ -350,6 +405,14 @@ public class GuiSortToolbar {
                 GuiUtils.drawHoveringText(Collections.singletonList(currentMode.getDescription()), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverOrder) {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.order_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
+            } else if (isStageButtonVisible() && isHovered(mouseX, mouseY, x + stageX, y + stageY, stageW, stageH)) {
+                boolean hideLocked = MaterialSectionManager.isHideLocked();
+                List<String> tooltip = new ArrayList<>();
+                tooltip.add(I18n.format("tinkers_sort.gui.hide_locked.title"));
+                tooltip.add("§7" + I18n.format("tinkers_sort.gui.hide_locked.desc"));
+                tooltip.add(hideLocked ? I18n.format("tinkers_sort.gui.hide_locked.on") : I18n.format("tinkers_sort.gui.hide_locked.off"));
+                tooltip.add(I18n.format("tinkers_sort.gui.hide_locked.click"));
+                GuiUtils.drawHoveringText(tooltip, mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverReset) {
                 GuiUtils.drawHoveringText(Collections.singletonList(I18n.format("tinkers_sort.gui.reset_tooltip")), mouseX, mouseY, guiBook.width, guiBook.height, -1, fr);
             } else if (hoverClear && searchField != null && !searchField.getText().isEmpty()) {
@@ -496,7 +559,22 @@ public class GuiSortToolbar {
             return true;
         }
 
-        // 5. Reset Button click
+        // 5. Stage Lock / Hide Locked Button click
+        if (isStageButtonVisible() && isHovered(mouseX, mouseY, x + stageX, y + stageY, stageW, stageH)) {
+            boolean newHide = !MaterialSectionManager.isHideLocked();
+            MaterialSectionManager.setHideLocked(newHide);
+            if (isArmoryMaterials()) {
+                ArmorySectionManager.rebuildArmorMaterials(guiBook.book);
+            } else {
+                MaterialSectionManager.rebuildToolMaterials(guiBook.book);
+                MaterialSectionManager.rebuildBowMaterials(guiBook.book);
+            }
+            refreshBook(guiBook, currentSection, target);
+            playClickSound(guiBook);
+            return true;
+        }
+
+        // 6. Reset Button click
         if (isHovered(mouseX, mouseY, x + resetX, y + resetY, resetW, resetH)) {
             if (searchField != null) {
                 searchField.setText("");
@@ -605,5 +683,35 @@ public class GuiSortToolbar {
         Gui.drawRect(x, y + height - 1, x + width, y + height, borderColor);
         Gui.drawRect(x, y, x + 1, y + height, borderColor);
         Gui.drawRect(x + width - 1, y, x + width, y + height, borderColor);
+    }
+
+    private void drawLockIcon(int cx, int cy, boolean closed, boolean available, boolean hovered) {
+        int iconColor;
+        if (!available) {
+            iconColor = 0xFF666666;
+        } else if (closed) {
+            iconColor = hovered ? 0xFFFFCC44 : 0xFFFFAA00;
+        } else {
+            iconColor = hovered ? 0xFFFFFFFF : 0xFFCCCCCC;
+        }
+
+        // Lock Body: 8x6 rectangle
+        Gui.drawRect(cx - 4, cy - 1, cx + 4, cy + 5, iconColor);
+
+        // Keyhole: 2x2 dark spot
+        Gui.drawRect(cx - 1, cy + 1, cx + 1, cy + 3, 0xFF1E1E1E);
+
+        // Shackle
+        if (closed) {
+            // Closed arch
+            Gui.drawRect(cx - 3, cy - 5, cx + 3, cy - 4, iconColor);
+            Gui.drawRect(cx - 3, cy - 4, cx - 2, cy - 1, iconColor);
+            Gui.drawRect(cx + 2, cy - 4, cx + 3, cy - 1, iconColor);
+        } else {
+            // Open arch
+            Gui.drawRect(cx - 3, cy - 5, cx + 1, cy - 4, iconColor);
+            Gui.drawRect(cx - 3, cy - 4, cx - 2, cy - 1, iconColor);
+            Gui.drawRect(cx + 1, cy - 7, cx + 2, cy - 4, iconColor);
+        }
     }
 }

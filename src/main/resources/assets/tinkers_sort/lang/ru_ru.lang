@@ -6,6 +6,12 @@ tinkers_sort.gui.search=Поиск...
 tinkers_sort.gui.clear_tooltip=Очистить поисковый запрос
 tinkers_sort.gui.order_tooltip=Нажмите, чтобы переключить По возрастанию / По убыванию
 tinkers_sort.gui.reset_tooltip=Сбросить сортировку и очистить поиск
+tinkers_sort.gui.hide_locked.title=Скрыть заблокированные материалы
+tinkers_sort.gui.hide_locked.desc=Скрывать материалы, не разблокированные через Game Stages
+tinkers_sort.gui.hide_locked.on=§aТекущее: Включено (Скрывать заблокированные)
+tinkers_sort.gui.hide_locked.off=§7Текущее: Выключено (Показывать все)
+tinkers_sort.gui.hide_locked.click=§eНажмите для переключения
+tinkers_sort.gui.hide_locked.no_mod=§cМод Game Stages не обнаружен
 tinkers_sort.gui.search_tooltip.name=• Прямой ввод: поиск по названию материала
 tinkers_sort.gui.search_tooltip.trait=• #trait: поиск по свойству материала
 
